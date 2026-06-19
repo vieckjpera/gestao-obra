@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Syne:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Brand — verde construtora, profissional */
+  --brand-50:  #f0fdf7;
+  --brand-100: #dcfced;
+  --brand-500: #0F6E56;
+  --brand-600: #0B5A47;
+  --brand-700: #084336;
+
+  /* Surfaces — warm off-white, não branco puro */
+  --surface-0:   #FAFAF7;
+  --surface-50:  #F4F3EE;
+  --surface-100: #ECEAE3;
+  --surface-200: #D8D5CB;
+  --surface-800: #2A2A27;
+  --surface-900: #1A1A17;
+
+  /* Text */
+  --text-primary:   #1A1A17;
+  --text-secondary: #5C5A53;
+  --text-tertiary:  #8C8A82;
+  --text-inverse:   #FAFAF7;
+
+  /* Semantic */
+  --success: #0F6E56;
+  --warning: #D97706;
+  --danger:  #DC2626;
+  --info:    #2563EB;
+
+  /* Borders */
+  --border-subtle:  #E8E6DF;
+  --border-default: #D0CEC6;
+  --border-strong:  #B0ADA4;
+
+  /* Shadows — multicamada para profundidade real */
+  --shadow-sm: 0 1px 2px rgba(26,26,23,0.06), 0 2px 4px rgba(26,26,23,0.04);
+  --shadow-md: 0 1px 2px rgba(26,26,23,0.06), 0 4px 8px rgba(26,26,23,0.08);
+  --shadow-lg: 0 2px 4px rgba(26,26,23,0.04), 0 8px 16px rgba(26,26,23,0.08), 0 24px 48px rgba(26,26,23,0.10);
+
+  /* Motion */
+  --duration-fast:   150ms;
+  --duration-normal: 300ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  background-color: var(--surface-50);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background com textura sutil — evita flat sólido */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Syne', sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* ── Utilities ──────────────────────────────────────────────── */
+.surface-card {
+  background: white;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.surface-inset {
+  background: var(--surface-50);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+/* ── Scrollbar discreta ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ── Motion ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out) both;
+}
+.animate-slide-up {
+  animation: slideUp var(--duration-normal) var(--ease-out) both;
+}
+.animate-stagger > * {
+  animation: slideUp var(--duration-normal) var(--ease-out) both;
+}
+.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 250ms; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -1,14 +1,31 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
   const router = useRouter()
+  const supabase = createClient()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    router.push('/dashboard')
+    setLoading(true)
+    setError(null)
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error) {
+      setError('E-mail ou senha inválidos.')
+      setLoading(false)
+    } else {
+      router.push('/dashboard')
+      router.refresh()
+    }
   }
 
   return (
@@ -27,7 +44,10 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
+              autoComplete="email"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-[var(--surface-50)] bg-[var(--surface-1)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-500)]"
               placeholder="voce@empresa.com"
             />
@@ -40,17 +60,25 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-[var(--surface-50)] bg-[var(--surface-1)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-500)]"
               placeholder="••••••••"
             />
           </div>
 
+          {error && (
+            <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full py-2.5 rounded-lg bg-[var(--brand-500)] text-white font-semibold text-sm hover:opacity-90 transition"
+            disabled={loading}
+            className="w-full py-2.5 rounded-lg bg-[var(--brand-500)] text-white font-semibold text-sm hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Entrar
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
       </div>

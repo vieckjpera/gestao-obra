@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { Plus, FileText, Search, Filter, ArrowUpRight } from 'lucide-react'
+import { Plus, FileText, Search, ChevronDown, X, ArrowUpRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Badge, PageHeader, EmptyState, Input } from '@/components/ui'
 import type { Estimate, EstimateStatus } from '@/types/database'
@@ -25,6 +27,8 @@ const STATUS_VARIANT: Record<EstimateStatus, 'draft' | 'info' | 'warning' | 'suc
   expired:  'default',
 }
 
+const ALL_STATUSES: EstimateStatus[] = ['draft', 'ready', 'sent', 'approved', 'rejected', 'expired']
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
 }
@@ -37,6 +41,9 @@ export default function EstimatesPage() {
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<EstimateStatus | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -52,12 +59,24 @@ export default function EstimatesPage() {
     load()
   }, [])
 
-  const filtered = estimates.filter(e =>
-    !search ||
-    e.estimate_number.toLowerCase().includes(search.toLowerCase()) ||
-    e.client?.name?.toLowerCase().includes(search.toLowerCase()) ||
-    e.scope?.toLowerCase().includes(search.toLowerCase())
-  )
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const filtered = estimates.filter(e => {
+    const matchSearch = !search ||
+      e.estimate_number.toLowerCase().includes(search.toLowerCase()) ||
+      e.client?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      e.scope?.toLowerCase().includes(search.toLowerCase())
+    const matchStatus = !statusFilter || e.status === statusFilter
+    return matchSearch && matchStatus
+  })
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--surface-50)' }}>
@@ -77,13 +96,67 @@ export default function EstimatesPage() {
       <div className="px-8 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--border-subtle)', background: 'white' }}>
         <div className="w-72">
           <Input
-            placeholder="Search by number, client or scope…"
+            placeholder="Buscar por número, cliente ou escopo…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             prefix={<Search size={14} />}
           />
         </div>
-        <Button variant="secondary" size="sm" icon={<Filter size={13} />}>Filter</Button>
+
+        {/* Status filter dropdown */}
+        <div className="relative" ref={filterRef}>
+          <button
+            onClick={() => setFilterOpen(v => !v)}
+            className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg border transition-colors"
+            style={{
+              borderColor: statusFilter ? 'var(--brand-500)' : 'var(--border-subtle)',
+              background: statusFilter ? 'var(--brand-50, #F0FDF9)' : 'white',
+              color: statusFilter ? 'var(--brand-600)' : 'var(--text-secondary)',
+            }}
+          >
+            <ChevronDown size={13} />
+            {statusFilter ? STATUS_LABEL[statusFilter] : 'Status'}
+            {statusFilter && (
+              <span
+                onClick={(e) => { e.stopPropagation(); setStatusFilter(null) }}
+                className="ml-1 hover:opacity-70"
+              >
+                <X size={11} />
+              </span>
+            )}
+          </button>
+          {filterOpen && (
+            <div
+              className="absolute top-full left-0 mt-1 w-40 rounded-xl border z-20 py-1 shadow-lg"
+              style={{ background: 'white', borderColor: 'var(--border-subtle)' }}
+            >
+              {ALL_STATUSES.map(s => (
+                <button
+                  key={s}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-surface-50 transition-colors flex items-center gap-2"
+                  style={{ color: statusFilter === s ? 'var(--brand-600)' : 'var(--text-primary)' }}
+                  onClick={() => { setStatusFilter(statusFilter === s ? null : s); setFilterOpen(false) }}
+                >
+                  <Badge variant={STATUS_VARIANT[s]}>{STATUS_LABEL[s]}</Badge>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {(search || statusFilter) && (
+          <button
+            className="text-xs"
+            style={{ color: 'var(--text-tertiary)' }}
+            onClick={() => { setSearch(''); setStatusFilter(null) }}
+          >
+            Limpar filtros
+          </button>
+        )}
+
+        <span className="ml-auto text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
+        </span>
       </div>
 
       {/* Content */}

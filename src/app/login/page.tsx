@@ -6,9 +6,19 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, PlayCircle } from 'lucide-react'
+
+const DEMO_EMAIL = 'demo@constructos.com'
+const DEMO_PASSWORD = 'Demo@2026'
 
 type Mode = 'login' | 'reset' | 'reset-sent'
+
+function mapAuthError(message: string): string {
+  if (message.includes('Invalid login credentials')) return 'E-mail ou senha inválidos.'
+  if (message.includes('Email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.'
+  if (message.includes('too many requests')) return 'Muitas tentativas. Aguarde alguns minutos.'
+  return `Erro ao entrar: ${message}`
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,19 +27,35 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  async function signIn(em: string, pw: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email: em, password: pw })
+    if (error) return error
+    router.push('/dashboard')
+    router.refresh()
+    return null
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError('E-mail ou senha inválidos. Tente novamente.')
+    const err = await signIn(email, password)
+    if (err) {
+      setError(mapAuthError(err.message))
       setLoading(false)
-    } else {
-      router.push('/dashboard')
-      router.refresh()
+    }
+  }
+
+  async function handleDemoLogin() {
+    setDemoLoading(true)
+    setError(null)
+    const err = await signIn(DEMO_EMAIL, DEMO_PASSWORD)
+    if (err) {
+      setError(mapAuthError(err.message))
+      setDemoLoading(false)
     }
   }
 
@@ -87,7 +113,6 @@ export default function LoginPage() {
             boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
           }}
         >
-          {/* Reset sent state */}
           {mode === 'reset-sent' ? (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <CheckCircle2 size={36} style={{ color: 'var(--brand-500)' }} />
@@ -139,49 +164,74 @@ export default function LoginPage() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleLogin} className="flex flex-col gap-4">
-              <Input
-                label="E-mail"
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="voce@empresa.com"
-              />
-              <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-4">
+              <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <Input
-                  label="Senha"
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
+                  label="E-mail"
+                  id="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="voce@empresa.com"
                 />
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    className="text-xs mt-1"
-                    style={{ color: 'var(--brand-500)' }}
-                    onClick={() => { setMode('reset'); setError(null) }}
-                  >
-                    Esqueceu a senha?
-                  </button>
+                <div className="flex flex-col gap-1">
+                  <Input
+                    label="Senha"
+                    id="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      className="text-xs mt-1"
+                      style={{ color: 'var(--brand-500)' }}
+                      onClick={() => { setMode('reset'); setError(null) }}
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  </div>
+                </div>
+                {error && (
+                  <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600">
+                    <AlertCircle size={13} />
+                    {error}
+                  </div>
+                )}
+                <Button type="submit" loading={loading} className="w-full justify-center">
+                  Entrar
+                </Button>
+              </form>
+
+              {/* Demo access */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t" style={{ borderColor: 'var(--border-subtle)' }} />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="px-3 text-xs" style={{ background: 'white', color: 'var(--text-tertiary)' }}>
+                    ou
+                  </span>
                 </div>
               </div>
-              {error && (
-                <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600">
-                  <AlertCircle size={13} />
-                  {error}
-                </div>
-              )}
-              <Button type="submit" loading={loading} className="w-full justify-center">
-                Entrar
-              </Button>
-            </form>
+
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={demoLoading}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-medium transition-colors hover:bg-surface-50 disabled:opacity-50"
+                style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}
+              >
+                <PlayCircle size={15} style={{ color: 'var(--brand-500)' }} />
+                {demoLoading ? 'Entrando...' : 'Acessar como Demonstração'}
+              </button>
+            </div>
           )}
         </div>
 

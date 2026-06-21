@@ -17,6 +17,14 @@ function mapAuthError(message: string): string {
   if (message.includes('Invalid login credentials')) return 'E-mail ou senha inválidos.'
   if (message.includes('Email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.'
   if (message.includes('too many requests')) return 'Muitas tentativas. Aguarde alguns minutos.'
+  if (message.includes('Invalid API key')) {
+    // Diagnóstico: revela qual projeto Supabase o bundle está realmente usando.
+    let host = 'desconhecido'
+    try {
+      host = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://owxqmsgpmbilmajjfaok.supabase.co').host
+    } catch {}
+    return `Chave de API inválida (projeto: ${host}). Se o host for "placeholder" o deploy está desatualizado; se for o projeto correto, a chave anon foi rotacionada.`
+  }
   return `Erro ao entrar: ${message}`
 }
 

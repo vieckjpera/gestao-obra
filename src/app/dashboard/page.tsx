@@ -36,9 +36,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: role } = await supabase.from('user_roles').select('org_id').eq('user_id', user.id).single()
+      const orgId = role?.org_id
       const [{ data: ests }, { count }] = await Promise.all([
-        supabase.from('estimates').select('*').order('created_at', { ascending: false }),
-        supabase.from('clients').select('*', { count: 'exact', head: true }),
+        supabase.from('estimates').select('*').eq('org_id', orgId).order('created_at', { ascending: false }),
+        supabase.from('clients').select('*', { count: 'exact', head: true }).eq('org_id', orgId),
       ])
       setEstimates((ests as Estimate[]) || [])
       setClientCount(count ?? 0)

@@ -33,9 +33,17 @@ export default function ClientsPage() {
 
   useEffect(() => { loadClients() }, [])
 
+  async function getOrgId() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data: role } = await supabase.from('user_roles').select('org_id').eq('user_id', user.id).single()
+    return role?.org_id ?? null
+  }
+
   async function loadClients() {
     setLoading(true)
-    const { data } = await supabase.from('clients').select('*').order('name')
+    const orgId = await getOrgId()
+    const { data } = await supabase.from('clients').select('*').eq('org_id', orgId).order('name')
     setClients((data as Client[]) || [])
     setLoading(false)
   }
@@ -44,7 +52,8 @@ export default function ClientsPage() {
     e.preventDefault()
     if (!form.name.trim()) return
     setSaving(true)
-    await supabase.from('clients').insert({ ...form })
+    const orgId = await getOrgId()
+    await supabase.from('clients').insert({ ...form, org_id: orgId })
     setForm({ name: '', email: '', phone: '', address: '', city: '', state: '', zip: '', notes: '' })
     setShowForm(false)
     setSaving(false)

@@ -22,23 +22,18 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
 
-  if (pathname.startsWith('/dashboard') && !user) {
+  // Só protege /dashboard — se não logado, manda pro /login
+  if (!user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
-  }
-
-  if (pathname === '/login' && user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
   return supabaseResponse
 }
 
+// Só roda no /dashboard — /login fica livre
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/dashboard/:path*'],
 }

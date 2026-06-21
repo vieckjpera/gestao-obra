@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -18,10 +20,10 @@ export async function GET(request: NextRequest) {
           getAll() {
             return cookieStore.getAll()
           },
-          setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
+          setAll(cookiesToSet) {
             try {
               cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
+                cookieStore.set(name, value, options)
               )
             } catch {}
           },

@@ -8,6 +8,7 @@ import { FileText, Users, DollarSign, TrendingUp, ArrowUpRight, Plus } from 'luc
 import { createClient } from '@/lib/supabase/client'
 import { Badge, Button } from '@/components/ui'
 import type { Estimate, EstimateStatus } from '@/types/database'
+import { useT } from '@/lib/i18n'
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -17,10 +18,7 @@ function formatDate(s: string) {
   return new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-const STATUS_LABEL: Record<EstimateStatus, string> = {
-  draft: 'Rascunho', ready: 'Pronto', sent: 'Enviado',
-  approved: 'Aprovado', rejected: 'Rejeitado', expired: 'Expirado',
-}
+
 const STATUS_VARIANT: Record<EstimateStatus, 'draft' | 'info' | 'warning' | 'success' | 'danger' | 'default'> = {
   draft: 'draft', ready: 'info', sent: 'warning',
   approved: 'success', rejected: 'danger', expired: 'default',
@@ -29,6 +27,11 @@ const STATUS_VARIANT: Record<EstimateStatus, 'draft' | 'info' | 'warning' | 'suc
 const STATUS_PIPELINE: EstimateStatus[] = ['draft', 'ready', 'sent']
 
 export default function DashboardPage() {
+  const { t } = useT()
+  const STATUS_LABEL: Record<EstimateStatus, string> = {
+    draft: t('status.draft'), ready: t('status.ready'), sent: t('status.sent'),
+    approved: t('status.approved'), rejected: t('status.rejected'), expired: t('status.expired'),
+  }
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [clientCount, setClientCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -60,30 +63,30 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      label: 'Total de Orçamentos',
+      label: t('dash.totalEstimates'),
       value: loading ? '—' : String(estimates.length),
-      sub: loading ? '' : `${pipeline.length} em andamento`,
+      sub: loading ? '' : `${pipeline.length} ${t('dash.inProgress')}`,
       icon: FileText,
       color: '#0F6E56',
     },
     {
-      label: 'Clientes Ativos',
+      label: t('dash.activeClients'),
       value: loading ? '—' : String(clientCount),
-      sub: 'cadastrados',
+      sub: t('dash.registered'),
       icon: Users,
       color: '#2563EB',
     },
     {
-      label: 'Receita Aprovada',
+      label: t('dash.approvedRevenue'),
       value: loading ? '—' : formatCurrency(totalRevenue),
-      sub: `${approved.length} orçamento${approved.length !== 1 ? 's' : ''} aprovado${approved.length !== 1 ? 's' : ''}`,
+      sub: `${approved.length} ${approved.length !== 1 ? t('dash.approvedPlural') : t('dash.approvedSingular')}`,
       icon: DollarSign,
       color: '#D97706',
     },
     {
-      label: 'Margem Média',
+      label: t('dash.avgMargin'),
       value: loading ? '—' : `${avgMargin.toFixed(1)}%`,
-      sub: 'orçamentos aprovados',
+      sub: t('dash.avgMarginSub'),
       icon: TrendingUp,
       color: '#7C3AED',
     },
@@ -99,15 +102,15 @@ export default function DashboardPage() {
       <div className="px-8 py-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)', background: 'white' }}>
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
-            Dashboard
+            {t('dash.title')}
           </h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-            Visão geral da sua operação
+            {t('dash.subtitle')}
           </p>
         </div>
         <Link href="/dashboard/estimates/new">
           <Button icon={<Plus size={15} strokeWidth={2.5} />} size="sm">
-            Novo Orçamento
+            {t('dash.newEstimate')}
           </Button>
         </Link>
       </div>
@@ -141,9 +144,9 @@ export default function DashboardPage() {
           {/* Recent Estimates */}
           <div className="col-span-2 surface-card overflow-hidden">
             <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>
-              <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Orçamentos Recentes</p>
+              <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t('dash.recentEstimates')}</p>
               <Link href="/dashboard/estimates" className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--brand-500)' }}>
-                Ver todos <ArrowUpRight size={12} />
+                {t('dash.viewAll')} <ArrowUpRight size={12} />
               </Link>
             </div>
             {loading ? (
@@ -154,9 +157,9 @@ export default function DashboardPage() {
               </div>
             ) : estimates.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Nenhum orçamento ainda.</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('dash.noEstimates')}</p>
                 <Link href="/dashboard/estimates/new" className="text-xs mt-1 block" style={{ color: 'var(--brand-500)' }}>
-                  Criar o primeiro orçamento →
+                  {t('dash.createFirst')}
                 </Link>
               </div>
             ) : (
@@ -189,13 +192,13 @@ export default function DashboardPage() {
 
           {/* Status Breakdown */}
           <div className="surface-card p-5 flex flex-col gap-4">
-            <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Por Status</p>
+            <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t('dash.byStatus')}</p>
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => <div key={i} className="h-8 rounded animate-pulse" style={{ background: 'var(--surface-50)' }} />)}
               </div>
             ) : estimates.length === 0 ? (
-              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Sem dados ainda.</p>
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{t('dash.noData')}</p>
             ) : (
               <div className="flex flex-col gap-3">
                 {(Object.entries(statusCounts) as [EstimateStatus, number][])

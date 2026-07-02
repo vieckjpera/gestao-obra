@@ -8,11 +8,9 @@ import { Plus, Folder, ArrowUpRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Badge, PageHeader } from '@/components/ui'
 import type { Estimate, EstimateStatus } from '@/types/database'
+import { useT } from '@/lib/i18n'
 
-const STATUS_LABEL: Record<EstimateStatus, string> = {
-  draft: 'Draft', ready: 'Ready', sent: 'Sent',
-  approved: 'Approved', rejected: 'Rejected', expired: 'Expired',
-}
+
 const STATUS_VARIANT: Record<EstimateStatus, 'draft' | 'info' | 'warning' | 'success' | 'danger' | 'default'> = {
   draft: 'draft', ready: 'info', sent: 'warning',
   approved: 'success', rejected: 'danger', expired: 'default',
@@ -23,6 +21,11 @@ function formatCurrency(n: number) {
 }
 
 export default function ProjectsPage() {
+  const { t } = useT()
+  const STATUS_LABEL: Record<EstimateStatus, string> = {
+    draft: t('status.draft'), ready: t('status.ready'), sent: t('status.sent'),
+    approved: t('status.approved'), rejected: t('status.rejected'), expired: t('status.expired'),
+  }
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -44,11 +47,11 @@ export default function ProjectsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Projects"
-        subtitle="Estimates approved or in progress"
+        title={t('projects.title')}
+        subtitle={t('projects.subtitle')}
         actions={
           <Link href="/dashboard/estimates/new">
-            <Button icon={<Plus size={16} />}>New Estimate</Button>
+            <Button icon={<Plus size={16} />}>{t('projects.newEstimate')}</Button>
           </Link>
         }
       />
@@ -63,11 +66,11 @@ export default function ProjectsPage() {
             <Folder size={28} style={{ color: 'var(--text-tertiary)' }} />
           </div>
           <div className="text-center">
-            <p className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>No active projects</p>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Approved or sent estimates will appear here.</p>
+            <p className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>{t('projects.emptyTitle')}</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{t('projects.emptyDesc')}</p>
           </div>
           <Link href="/dashboard/estimates/new">
-            <Button icon={<Plus size={16} />}>Create Estimate</Button>
+            <Button icon={<Plus size={16} />}>{t('projects.createEstimate')}</Button>
           </Link>
         </div>
       ) : (
@@ -79,15 +82,15 @@ export default function ProjectsPage() {
                   <Folder size={18} style={{ color: 'var(--brand-700)' }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{e.client?.name || 'Unknown client'}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{e.estimate_number} · {e.scope || 'No scope'}</p>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{e.client?.name || t('projects.unknownClient')}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{e.estimate_number} · {e.scope || t('projects.noScope')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{formatCurrency(e.total_with_margin)}</p>
                 <Badge variant={STATUS_VARIANT[e.status]}>{STATUS_LABEL[e.status]}</Badge>
                 <Link href={`/dashboard/estimates/${e.id}`}>
-                  <Button variant="ghost" size="sm" icon={<ArrowUpRight size={14} />}>View</Button>
+                  <Button variant="ghost" size="sm" icon={<ArrowUpRight size={14} />}>{t('projects.view')}</Button>
                 </Link>
               </div>
             </div>

@@ -7,30 +7,26 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
 import { AlertCircle, CheckCircle2, PlayCircle } from 'lucide-react'
+import { useT, type TranslationKey } from '@/lib/i18n'
 
 const DEMO_EMAIL = 'demo@constructos.com'
 const DEMO_PASSWORD = 'Demo@2026'
 
 type Mode = 'login' | 'reset' | 'reset-sent'
 
-function mapAuthError(message: string): string {
-  if (message.includes('Invalid login credentials')) return 'E-mail ou senha inválidos.'
-  if (message.includes('Email not confirmed')) return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.'
-  if (message.includes('too many requests')) return 'Muitas tentativas. Aguarde alguns minutos.'
-  if (message.includes('Invalid API key')) {
-    // Diagnóstico: revela qual projeto Supabase o bundle está realmente usando.
-    let host = 'desconhecido'
-    try {
-      host = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://owxqmsgpmbilmajjfaok.supabase.co').host
-    } catch {}
-    return `Chave de API inválida (projeto: ${host}). Se o host for "placeholder" o deploy está desatualizado; se for o projeto correto, a chave anon foi rotacionada.`
-  }
-  return `Erro ao entrar: ${message}`
-}
+
 
 export default function LoginPage() {
+  const { t, lang, setLang } = useT()
   const router = useRouter()
   const supabase = createClient()
+
+  function mapAuthError(message: string): string {
+    if (message.includes('Invalid login credentials')) return t('login.errInvalid')
+    if (message.includes('Email not confirmed')) return t('login.errNotConfirmed')
+    if (message.includes('too many requests')) return t('login.errTooMany')
+    return `${t('login.errGeneric')} ${message}`
+  }
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -76,7 +72,7 @@ export default function LoginPage() {
     })
     setLoading(false)
     if (error) {
-      setError('Erro ao enviar e-mail. Verifique o endereço e tente novamente.')
+      setError(t('login.errReset'))
     } else {
       setMode('reset-sent')
     }
@@ -106,9 +102,9 @@ export default function LoginPage() {
             ConstructOS
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-            {mode === 'login' && 'Gestão de obras simplificada'}
-            {mode === 'reset' && 'Recuperação de senha'}
-            {mode === 'reset-sent' && 'E-mail enviado'}
+            {mode === 'login' && t('login.tagline')}
+            {mode === 'reset' && t('login.resetTitle')}
+            {mode === 'reset-sent' && t('login.resetSentTitle')}
           </p>
         </div>
 
@@ -125,33 +121,33 @@ export default function LoginPage() {
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <CheckCircle2 size={36} style={{ color: 'var(--brand-500)' }} />
               <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                Verifique seu e-mail
+                {t('login.checkEmail')}
               </p>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                Enviamos um link de recuperação para <strong>{email}</strong>. Clique no link para criar uma nova senha.
+                {t('login.resetSentDesc')} <strong>{email}</strong>. {t('login.resetSentDesc2')}
               </p>
               <button
                 className="text-xs font-medium mt-2"
                 style={{ color: 'var(--brand-500)' }}
                 onClick={() => { setMode('login'); setError(null) }}
               >
-                Voltar ao login
+                {t('login.backToLogin')}
               </button>
             </div>
           ) : mode === 'reset' ? (
             <form onSubmit={handleReset} className="flex flex-col gap-4">
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                Informe seu e-mail e enviaremos um link para criar uma nova senha.
+                {t('login.resetInstructions')}
               </p>
               <Input
-                label="E-mail"
+                label={t('login.email')}
                 id="email"
                 type="email"
                 autoComplete="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="voce@empresa.com"
+                placeholder={t('login.emailPlaceholder')}
               />
               {error && (
                 <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600">
@@ -160,7 +156,7 @@ export default function LoginPage() {
                 </div>
               )}
               <Button type="submit" loading={loading} className="w-full justify-center">
-                Enviar link de recuperação
+                {t('login.sendResetLink')}
               </Button>
               <button
                 type="button"
@@ -168,25 +164,25 @@ export default function LoginPage() {
                 style={{ color: 'var(--text-tertiary)' }}
                 onClick={() => { setMode('login'); setError(null) }}
               >
-                Voltar ao login
+                {t('login.backToLogin')}
               </button>
             </form>
           ) : (
             <div className="flex flex-col gap-4">
               <form onSubmit={handleLogin} className="flex flex-col gap-4">
                 <Input
-                  label="E-mail"
+                  label={t('login.email')}
                   id="email"
                   type="email"
                   autoComplete="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="voce@empresa.com"
+                  placeholder={t('login.emailPlaceholder')}
                 />
                 <div className="flex flex-col gap-1">
                   <Input
-                    label="Senha"
+                    label={t('login.password')}
                     id="password"
                     type="password"
                     autoComplete="current-password"
@@ -202,7 +198,7 @@ export default function LoginPage() {
                       style={{ color: 'var(--brand-500)' }}
                       onClick={() => { setMode('reset'); setError(null) }}
                     >
-                      Esqueceu a senha?
+                      {t('login.forgot')}
                     </button>
                   </div>
                 </div>
@@ -213,7 +209,7 @@ export default function LoginPage() {
                   </div>
                 )}
                 <Button type="submit" loading={loading} className="w-full justify-center">
-                  Entrar
+                  {t('login.signIn')}
                 </Button>
               </form>
 
@@ -224,7 +220,7 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center">
                   <span className="px-3 text-xs" style={{ background: 'white', color: 'var(--text-tertiary)' }}>
-                    ou
+                    {t('login.or')}
                   </span>
                 </div>
               </div>
@@ -237,15 +233,25 @@ export default function LoginPage() {
                 style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}
               >
                 <PlayCircle size={15} style={{ color: 'var(--brand-500)' }} />
-                {demoLoading ? 'Entrando...' : 'Acessar como Demonstração'}
+                {demoLoading ? t('login.demoLoading') : t('login.demo')}
               </button>
             </div>
           )}
         </div>
 
-        <p className="text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
-          © {new Date().getFullYear()} ConstructOS · Todos os direitos reservados
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setLang(lang === 'pt' ? 'en' : 'pt')}
+            className="text-xs font-medium px-3 py-1.5 rounded-full border transition-colors hover:bg-surface-50"
+            style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}
+          >
+            {lang === 'pt' ? '🇺🇸 English' : '🇧🇷 Português'}
+          </button>
+          <p className="text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            © {new Date().getFullYear()} ConstructOS · {t('login.footer')}
+          </p>
+        </div>
       </div>
     </div>
   )

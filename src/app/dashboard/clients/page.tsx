@@ -7,22 +7,25 @@ import { Plus, Search, Phone, Mail, MapPin, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Input, PageHeader } from '@/components/ui'
 import type { Client } from '@/types/database'
+import { useT } from '@/lib/i18n'
 
 function EmptyClients() {
+  const { t } = useT()
   return (
     <div className="flex flex-col items-center justify-center py-24 gap-4">
       <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'var(--surface-2)' }}>
         <User size={28} style={{ color: 'var(--text-tertiary)' }} />
       </div>
       <div className="text-center">
-        <p className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>No clients yet</p>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Add your first client to start creating estimates.</p>
+        <p className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>{t('clients.emptyTitle')}</p>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{t('clients.emptyDesc')}</p>
       </div>
     </div>
   )
 }
 
 export default function ClientsPage() {
+  const { t } = useT()
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -70,28 +73,28 @@ export default function ClientsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Clients"
-        subtitle={`${clients.length} client${clients.length !== 1 ? 's' : ''} total`}
+        title={t('clients.title')}
+        subtitle={`${clients.length} ${clients.length !== 1 ? t('clients.plural') : t('clients.singular')}`}
         actions={
           <Button icon={<Plus size={16} />} onClick={() => setShowForm(v => !v)}>
-            New Client
+            {t('clients.newClient')}
           </Button>
         }
       />
 
       {showForm && (
         <form onSubmit={saveClient} className="rounded-xl border p-6 flex flex-col gap-4" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
-          <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>New Client</p>
+          <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t('clients.newClient')}</p>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Name" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full name or company" />
-            <Input label="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@example.com" />
-            <Input label="Phone" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="(555) 000-0000" />
-            <Input label="City" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder="City" />
-            <Input label="Address" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} placeholder="Street address" className="col-span-2" />
+            <Input label={t('clients.name')} required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t('clients.namePlaceholder')} />
+            <Input label={t('clients.email')} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder={t('clients.emailPlaceholder')} />
+            <Input label={t('clients.phone')} value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder={t('clients.phonePlaceholder')} />
+            <Input label={t('clients.city')} value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} placeholder={t('clients.cityPlaceholder')} />
+            <Input label={t('clients.address')} value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} placeholder={t('clients.addressPlaceholder')} className="col-span-2" />
           </div>
           <div className="flex gap-2 justify-end">
-            <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button type="submit" loading={saving}>Save Client</Button>
+            <Button variant="secondary" type="button" onClick={() => setShowForm(false)}>{t('clients.cancel')}</Button>
+            <Button type="submit" loading={saving}>{t('clients.save')}</Button>
           </div>
         </form>
       )}
@@ -101,7 +104,7 @@ export default function ClientsPage() {
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
           <input
             value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name, email or city..."
+            placeholder={t('clients.searchPlaceholder')}
             className="w-full pl-9 pr-4 py-2.5 text-sm rounded-lg border outline-none"
             style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)', color: 'var(--text-primary)' }}
           />

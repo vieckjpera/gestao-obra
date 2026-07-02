@@ -7,6 +7,7 @@ import { DollarSign, TrendingUp, TrendingDown, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PageHeader } from '@/components/ui'
 import type { Estimate } from '@/types/database'
+import { useT } from '@/lib/i18n'
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
@@ -28,6 +29,7 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
 }
 
 export default function ControllerPage() {
+  const { t } = useT()
   const [estimates, setEstimates] = useState<Estimate[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -59,8 +61,8 @@ export default function ControllerPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Controller"
-        subtitle="Financial overview from your estimates"
+        title={t('controller.title')}
+        subtitle={t('controller.subtitle')}
       />
 
       {loading ? (
@@ -72,44 +74,44 @@ export default function ControllerPage() {
           <div className="grid grid-cols-2 gap-4">
             <StatCard
               icon={<DollarSign size={16} style={{ color: 'var(--brand-600)' }} />}
-              label="Approved Revenue"
+              label={t('controller.approvedRevenue')}
               value={formatCurrency(totalApproved)}
-              sub={`${approved.length} approved estimate${approved.length !== 1 ? 's' : ''}`}
+              sub={`${approved.length} ${approved.length !== 1 ? t('controller.approvedPlural') : t('controller.approvedSingular')}`}
               color="var(--brand-600)"
             />
             <StatCard
               icon={<TrendingUp size={16} style={{ color: '#F59E0B' }} />}
-              label="Pipeline"
+              label={t('controller.pipeline')}
               value={formatCurrency(totalPipeline)}
-              sub={`${draft.length} pending estimate${draft.length !== 1 ? 's' : ''}`}
+              sub={`${draft.length} ${draft.length !== 1 ? t('controller.pendingPlural') : t('controller.pendingSingular')}`}
             />
             <StatCard
               icon={<TrendingDown size={16} style={{ color: 'var(--text-secondary)' }} />}
-              label="Materials Cost"
+              label={t('controller.materialsCost')}
               value={formatCurrency(totalMaterials)}
-              sub="Approved estimates only"
+              sub={t('controller.approvedOnly')}
             />
             <StatCard
               icon={<FileText size={16} style={{ color: 'var(--text-secondary)' }} />}
-              label="Avg Margin"
+              label={t('controller.avgMargin')}
               value={`${avgMargin.toFixed(1)}%`}
-              sub="Across approved estimates"
+              sub={t('controller.acrossApproved')}
             />
           </div>
 
           <div className="rounded-xl border" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
             <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--surface-2)' }}>
-              <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Recent Estimates</p>
+              <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t('controller.recentEstimates')}</p>
             </div>
             {estimates.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No estimates yet. Create your first estimate to see financial data here.</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('controller.noEstimates')}</p>
               </div>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b" style={{ borderColor: 'var(--surface-2)' }}>
-                    {['Estimate', 'Materials', 'Labor', 'Total w/ Margin', 'Margin'].map(h => (
+                    {[t('controller.thEstimate'), t('controller.thMaterials'), t('controller.thLabor'), t('controller.thTotal'), t('controller.thMargin')].map(h => (
                       <th key={h} className="text-left px-5 py-3 text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>{h}</th>
                     ))}
                   </tr>

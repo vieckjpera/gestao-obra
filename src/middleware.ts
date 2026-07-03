@@ -1,8 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://owxqmsgpmbilmajjfaok.supabase.co'
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93eHFtc2dwbWJpbG1hampmYW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzA3MzAsImV4cCI6MjA5MDcwNjczMH0.GTeV-iH2aWDF1v_SS9J10BhTihqU4HdWVjI6o7NnU-s'
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supabase/config'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })

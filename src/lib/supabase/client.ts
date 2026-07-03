@@ -1,7 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://owxqmsgpmbilmajjfaok.supabase.co'
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93eHFtc2dwbWJpbG1hampmYW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMzA3MzAsImV4cCI6MjA5MDcwNjczMH0.GTeV-iH2aWDF1v_SS9J10BhTihqU4HdWVjI6o7NnU-s'
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config'
 
 export function createClient() {
   return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)

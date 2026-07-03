@@ -1,0 +1,33 @@
+name: CI — Build & Type Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build (Next.js) + TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build (mesmo processo do Cloudflare Pages)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://owxqmsgpmbilmajjfaok.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_sx0SLRWql0uQv-PfKVjbnQJlE7OJZuFgLg
+        run: npx next build

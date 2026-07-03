@@ -12,7 +12,7 @@ import { useT, type TranslationKey } from '@/lib/i18n'
 const DEMO_EMAIL = 'demo@constructos.com'
 const DEMO_PASSWORD = 'Demo@2026'
 
-type Mode = 'login' | 'reset' | 'reset-sent'
+type Mode = 'login' | 'reset' | 'reset-sent' | 'signup' | 'signup-sent'
 
 
 
@@ -63,6 +63,29 @@ export default function LoginPage() {
     }
   }
 
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault()
+    if (password.length < 6) { setError(t('login.errWeakPassword')); return }
+    setLoading(true)
+    setError(null)
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    })
+    setLoading(false)
+    if (error) {
+      setError(t('login.errSignup'))
+    } else if (data.session) {
+      // Sessão imediata (confirmação de e-mail desativada) → vai pro onboarding
+      router.push('/onboarding')
+      router.refresh()
+    } else {
+      // Precisa confirmar e-mail
+      setMode('signup-sent')
+    }
+  }
+
   async function handleReset(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -105,6 +128,8 @@ export default function LoginPage() {
             {mode === 'login' && t('login.tagline')}
             {mode === 'reset' && t('login.resetTitle')}
             {mode === 'reset-sent' && t('login.resetSentTitle')}
+            {mode === 'signup' && t('login.signupTitle')}
+            {mode === 'signup-sent' && t('login.signupSentTitle')}
           </p>
         </div>
 
@@ -117,7 +142,64 @@ export default function LoginPage() {
             boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
           }}
         >
-          {mode === 'reset-sent' ? (
+          {mode === 'signup-sent' ? (
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <CheckCircle2 size={36} style={{ color: 'var(--brand-500)' }} />
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                {t('login.signupSentTitle')}
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {t('login.signupSentDesc')} <strong>{email}</strong>. {t('login.signupSentDesc2')}
+              </p>
+              <button
+                className="text-xs font-medium mt-2"
+                style={{ color: 'var(--brand-500)' }}
+                onClick={() => { setMode('login'); setError(null) }}
+              >
+                {t('login.backToLogin')}
+              </button>
+            </div>
+          ) : mode === 'signup' ? (
+            <form onSubmit={handleSignup} className="flex flex-col gap-4">
+              <Input
+                label={t('login.email')}
+                id="signup-email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder={t('login.emailPlaceholder')}
+              />
+              <Input
+                label={t('login.password')}
+                id="signup-password"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+              {error && (
+                <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg bg-red-50 text-red-600">
+                  <AlertCircle size={13} />
+                  {error}
+                </div>
+              )}
+              <Button type="submit" loading={loading} className="w-full justify-center">
+                {t('login.createAccount')}
+              </Button>
+              <button
+                type="button"
+                className="text-xs text-center"
+                style={{ color: 'var(--text-tertiary)' }}
+                onClick={() => { setMode('login'); setError(null) }}
+              >
+                {t('login.loginCta')}
+              </button>
+            </form>
+          ) : mode === 'reset-sent' ? (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <CheckCircle2 size={36} style={{ color: 'var(--brand-500)' }} />
               <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -234,6 +316,15 @@ export default function LoginPage() {
               >
                 <PlayCircle size={15} style={{ color: 'var(--brand-500)' }} />
                 {demoLoading ? t('login.demoLoading') : t('login.demo')}
+              </button>
+
+              <button
+                type="button"
+                className="text-xs text-center mt-1"
+                style={{ color: 'var(--brand-500)' }}
+                onClick={() => { setMode('signup'); setError(null) }}
+              >
+                {t('login.signupCta')}
               </button>
             </div>
           )}

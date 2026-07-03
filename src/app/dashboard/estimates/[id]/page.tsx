@@ -11,6 +11,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { Button, Badge, PageHeader } from '@/components/ui'
 import type { Estimate, EstimateSection, EstimateItem, EstimateStatus } from '@/types/database'
+import { generateEstimatePDF } from '@/lib/pdf/estimate-pdf'
 
 function formatUSD(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
@@ -115,7 +116,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
             </Button>
             <Badge variant={STATUS_VARIANT[estimate.status]}>{STATUS_LABEL[estimate.status]}</Badge>
             {allOk && (
-              <Button size="sm" icon={<FileDown size={14} />} disabled>
+              <Button size="sm" icon={<FileDown size={14} />} onClick={() => generateEstimatePDF(estimate)}>
                 Generate PDF
               </Button>
             )}

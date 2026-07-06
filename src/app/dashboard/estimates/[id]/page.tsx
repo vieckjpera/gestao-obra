@@ -76,7 +76,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4 p-8">
+      <div className="flex flex-col gap-4 p-4 md:p-8">
         {[1, 2, 3].map(i => (
           <div key={i} className="h-24 rounded-xl animate-pulse" style={{ background: 'var(--surface-2)' }} />
         ))}
@@ -124,10 +124,10 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
         }
       />
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* LEFT: Sections & Items */}
-        <div className="col-span-2 flex flex-col gap-4">
+        <div className="lg:col-span-2 flex flex-col gap-4">
 
           {/* Client Info */}
           <div className="rounded-xl border p-5" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
@@ -135,7 +135,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
               <User size={14} style={{ color: 'var(--brand-500)' }} />
               <p className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>Client & Project</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-tertiary)' }}>Client</p>
                 <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{estimate.client?.name || '—'}</p>
@@ -203,6 +203,8 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
                     </div>
 
                     {/* Items Table Header */}
+                    <div className="overflow-x-auto">
+                    <div className="min-w-[600px]">
                     <div
                       className="grid text-xs px-5 py-2 font-medium"
                       style={{
@@ -250,6 +252,8 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
                         </p>
                       </div>
                     ))}
+                    </div>
+                    </div>
                   </div>
                 )
               })

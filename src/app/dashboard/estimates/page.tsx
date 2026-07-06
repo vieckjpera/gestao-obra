@@ -93,7 +93,7 @@ export default function EstimatesPage() {
       />
 
       {/* Filters */}
-      <div className="px-8 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--border-subtle)', background: 'white' }}>
+      <div className="px-4 md:px-8 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--border-subtle)', background: 'white' }}>
         <div className="w-72">
           <Input
             placeholder="Buscar por número, cliente ou escopo…"
@@ -160,7 +160,7 @@ export default function EstimatesPage() {
       </div>
 
       {/* Content */}
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         {loading ? (
           <div className="animate-stagger space-y-3">
             {[1,2,3,4].map(i => (

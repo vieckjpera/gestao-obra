@@ -99,7 +99,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--surface-50)' }}>
       {/* Header */}
-      <div className="px-8 py-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)', background: 'white' }}>
+      <div className="px-4 md:px-8 py-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)', background: 'white' }}>
         <div>
           <h1 className="text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
             {t('dash.title')}
@@ -115,9 +115,9 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      <div className="p-8 flex flex-col gap-6">
+      <div className="p-4 md:p-8 flex flex-col gap-6">
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map(({ label, value, sub, icon: Icon, color }) => (
             <div key={label} className="surface-card p-5">
               <div className="flex items-start justify-between mb-4">
@@ -140,7 +140,7 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Estimates */}
           <div className="col-span-2 surface-card overflow-hidden">
             <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>

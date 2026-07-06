@@ -85,7 +85,7 @@ export default function ClientsPage() {
       {showForm && (
         <form onSubmit={saveClient} className="rounded-xl border p-6 flex flex-col gap-4" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
           <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t('clients.newClient')}</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t('clients.name')} required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={t('clients.namePlaceholder')} />
             <Input label={t('clients.email')} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder={t('clients.emailPlaceholder')} />
             <Input label={t('clients.phone')} value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder={t('clients.phonePlaceholder')} />

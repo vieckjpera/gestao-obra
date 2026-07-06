@@ -66,12 +66,12 @@ export default function ControllerPage() {
       />
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1,2,3,4].map(i => <div key={i} className="h-28 rounded-xl animate-pulse" style={{ background: 'var(--surface-2)' }} />)}
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <StatCard
               icon={<DollarSign size={16} style={{ color: 'var(--brand-600)' }} />}
               label={t('controller.approvedRevenue')}
@@ -108,7 +108,8 @@ export default function ControllerPage() {
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('controller.noEstimates')}</p>
               </div>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[560px]">
                 <thead>
                   <tr className="border-b" style={{ borderColor: 'var(--surface-2)' }}>
                     {[t('controller.thEstimate'), t('controller.thMaterials'), t('controller.thLabor'), t('controller.thTotal'), t('controller.thMargin')].map(h => (
@@ -128,6 +129,7 @@ export default function ControllerPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </>

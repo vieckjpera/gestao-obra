@@ -192,12 +192,12 @@ interface PageHeaderProps {
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <div
-      className="px-8 py-6 border-b flex items-center justify-between"
+      className="px-4 md:px-8 py-4 md:py-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       style={{ borderColor: 'var(--border-subtle)', background: 'white' }}
     >
       <div>
         <h1
-          className="text-2xl font-bold tracking-tight"
+          className="text-xl md:text-2xl font-bold tracking-tight"
           style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}
         >
           {title}

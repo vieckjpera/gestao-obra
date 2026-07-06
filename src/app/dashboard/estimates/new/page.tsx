@@ -288,10 +288,10 @@ export default function NewEstimatePage() {
         }
       />
 
-      <div className="p-8 grid grid-cols-3 gap-6 max-w-7xl mx-auto">
+      <div className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
 
         {/* LEFT: Form */}
-        <div className="col-span-2 space-y-5">
+        <div className="lg:col-span-2 space-y-5">
 
           {/* Client & Info */}
           <div className="surface-card p-6 space-y-4">
@@ -384,7 +384,8 @@ export default function NewEstimatePage() {
 
                     {/* Items */}
                     {!collapsed && (
-                      <div>
+                      <div className="overflow-x-auto">
+                        <div className="min-w-[720px]">
                         {/* Header row */}
                         <div
                           className="grid text-xs px-4 py-2 font-medium"
@@ -474,6 +475,7 @@ export default function NewEstimatePage() {
                             </button>
                           </div>
                         ))}
+                        </div>
 
                         <div className="px-4 py-2.5">
                           <Button

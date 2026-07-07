@@ -28,7 +28,7 @@ export function MobileHeader() {
         </div>
         <span
           className="text-sm font-semibold"
-          style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}
         >
           ConstructOS
         </span>

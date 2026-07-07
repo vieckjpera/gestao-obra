@@ -133,7 +133,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
           <div className="rounded-xl border p-5" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
             <div className="flex items-center gap-2 mb-4">
               <User size={14} style={{ color: 'var(--brand-500)' }} />
-              <p className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>Client & Project</p>
+              <p className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}>Client & Project</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -175,7 +175,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
           <div className="rounded-xl border" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
             <div className="flex items-center gap-2 px-5 py-4 border-b" style={{ borderColor: 'var(--surface-2)' }}>
               <Layers size={14} style={{ color: 'var(--brand-500)' }} />
-              <p className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+              <p className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}>
                 Sections & Items
               </p>
               <span className="text-xs ml-auto" style={{ color: 'var(--text-tertiary)' }}>
@@ -194,7 +194,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
                   <div key={section.id} className="border-b last:border-0" style={{ borderColor: 'var(--surface-2)' }}>
                     {/* Section Header */}
                     <div className="flex items-center justify-between px-5 py-3" style={{ background: 'var(--surface-50, #FAFAF8)' }}>
-                      <p className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+                      <p className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {section.name}
                       </p>
                       <p className="text-sm font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -268,7 +268,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
           <div className="rounded-xl border p-5" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
             <div className="flex items-center gap-2 mb-4">
               <DollarSign size={14} style={{ color: 'var(--brand-500)' }} />
-              <p className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>Totals</p>
+              <p className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}>Totals</p>
             </div>
             <div className="flex flex-col gap-2">
               {[
@@ -304,7 +304,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
           {/* Checklist */}
           <div className="rounded-xl border p-5" style={{ background: 'var(--surface-1)', borderColor: 'var(--surface-2)' }}>
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>Checklist</p>
+              <p className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}>Checklist</p>
               <Badge variant={allOk ? 'success' : 'draft'}>{allOk ? 'Ready' : checks.filter(c => !c.ok).length + ' pending'}</Badge>
             </div>
             <div className="flex flex-col gap-2.5">

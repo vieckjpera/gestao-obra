@@ -211,7 +211,7 @@ export default function EstimatesPage() {
                   <div className="flex items-center gap-2 mb-0.5">
                     <span
                       className="text-sm font-semibold"
-                      style={{ fontFamily: 'Space Mono, monospace', color: 'var(--text-primary)' }}
+                      style={{ fontFamily: 'Inter, sans-serif', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}
                     >
                       {estimate.estimate_number}
                     </span>

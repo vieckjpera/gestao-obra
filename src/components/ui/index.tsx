@@ -198,7 +198,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
       <div>
         <h1
           className="text-xl md:text-2xl font-bold tracking-tight"
-          style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}
+          style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}
         >
           {title}
         </h1>
@@ -232,7 +232,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
       )}
       <h3
         className="text-base font-semibold mb-1"
-        style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}
+        style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}
       >
         {title}
       </h3>

@@ -297,7 +297,7 @@ export default function NewEstimatePage() {
           <div className="surface-card p-6 space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <User size={15} style={{ color: 'var(--brand-500)' }} />
-              <h2 className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <h2 className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
                 Client & Project Info
               </h2>
             </div>
@@ -331,7 +331,7 @@ export default function NewEstimatePage() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Layers size={15} style={{ color: 'var(--brand-500)' }} />
-                <h2 className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>
+                <h2 className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
                   Sections & Items
                 </h2>
               </div>
@@ -358,7 +358,7 @@ export default function NewEstimatePage() {
                       <GripVertical size={14} style={{ color: 'var(--text-tertiary)' }} className="cursor-grab" />
                       <input
                         className="flex-1 text-sm font-medium bg-transparent border-none outline-none"
-                        style={{ color: 'var(--text-primary)', fontFamily: 'Syne, sans-serif' }}
+                        style={{ color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                         value={section.name}
                         onChange={e => updateSectionName(section.id, e.target.value)}
                         placeholder="Section name…"
@@ -503,7 +503,7 @@ export default function NewEstimatePage() {
           <div className="surface-card p-5">
             <div className="flex items-center gap-2 mb-4">
               <DollarSign size={15} style={{ color: 'var(--brand-500)' }} />
-              <h2 className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <h2 className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
                 Margin & Totals
               </h2>
             </div>
@@ -550,7 +550,7 @@ export default function NewEstimatePage() {
           {/* Checklist */}
           <div className="surface-card p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif' }}>
+              <h2 className="text-sm font-semibold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700 }}>
                 Checklist
               </h2>
               {allOk

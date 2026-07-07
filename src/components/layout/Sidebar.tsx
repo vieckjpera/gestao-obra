@@ -51,7 +51,7 @@ export function Sidebar() {
           <div>
             <p
               className="text-sm font-semibold leading-tight"
-              style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-inverse)' }}
+              style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-inverse)' }}
             >
               ConstructOS
             </p>

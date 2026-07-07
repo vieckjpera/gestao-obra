@@ -22,7 +22,7 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
           {icon}
         </div>
       </div>
-      <p className="text-2xl font-bold" style={{ fontFamily: "'Space Mono', monospace", color: color || 'var(--text-primary)' }}>{value}</p>
+      <p className="text-2xl font-bold" style={{ fontFamily: "Inter, sans-serif", fontVariantNumeric: "tabular-nums", color: color || 'var(--text-primary)' }}>{value}</p>
       {sub && <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{sub}</p>}
     </div>
   )

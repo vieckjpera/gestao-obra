@@ -101,7 +101,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="px-4 md:px-8 py-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)', background: 'white' }}>
         <div>
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}>
             {t('dash.title')}
           </h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -130,7 +130,7 @@ export default function DashboardPage() {
               </div>
               <p
                 className="text-2xl font-bold mb-0.5"
-                style={{ fontFamily: "'Space Mono', monospace", color: 'var(--text-primary)' }}
+                style={{ fontFamily: "Inter, sans-serif", fontVariantNumeric: "tabular-nums", color: 'var(--text-primary)' }}
               >
                 {value}
               </p>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                   >
                     <span
                       className="text-xs font-semibold w-20 flex-shrink-0"
-                      style={{ fontFamily: 'Space Mono, monospace', color: 'var(--text-primary)' }}
+                      style={{ fontFamily: 'Inter, sans-serif', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}
                     >
                       {e.estimate_number}
                     </span>

@@ -9,9 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'DM Sans', 'sans-serif'],
-        display: ['var(--font-syne)', 'Syne', 'sans-serif'],
-        mono: ['var(--font-space-mono)', 'Space Mono', 'monospace'],
+        sans: ['Inter', 'sans-serif'],
+        display: ['Inter', 'sans-serif'],
+        mono: ['Inter', 'sans-serif'],
       },
       colors: {
         brand: {

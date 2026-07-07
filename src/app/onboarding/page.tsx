@@ -67,7 +67,7 @@ export default function OnboardingPage() {
           </div>
           <h1
             className="text-2xl font-bold"
-            style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}
+            style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, color: 'var(--text-primary)' }}
           >
             Configure sua empresa
           </h1>

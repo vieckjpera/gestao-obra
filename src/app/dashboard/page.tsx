@@ -130,7 +130,7 @@ export default function DashboardPage() {
               </div>
               <p
                 className="text-2xl font-bold mb-0.5"
-                style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}
+                style={{ fontFamily: "'Space Mono', monospace", color: 'var(--text-primary)' }}
               >
                 {value}
               </p>

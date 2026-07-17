@@ -1,5 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
 export type ItemType = 'material' | 'labor' | 'permit' | 'other'
+export type SectionType = 'material' | 'labor' | 'permit' | 'other'
 export type EstimateStatus = 'draft' | 'ready' | 'sent' | 'approved' | 'rejected' | 'expired'
 export type UserRole = 'super_admin' | 'owner' | 'pm' | 'sub' | 'homeowner'
 
@@ -25,7 +26,8 @@ export interface Estimate {
   scope: string | null; status: EstimateStatus
   profit_margin_pct: number; valid_until: string | null
   subtotal_materials: number; subtotal_labor: number
-  subtotal_other: number; grand_total: number; total_with_margin: number
+  subtotal_other: number; tax_pct: number; tax_amount: number
+  grand_total: number; total_with_margin: number
   check_client_complete: boolean; check_has_sections: boolean
   check_items_complete: boolean; check_margin_defined: boolean
   check_no_zero_items: boolean; pdf_url: string | null
@@ -34,7 +36,7 @@ export interface Estimate {
 }
 export interface EstimateSection {
   id: string; estimate_id: string; org_id: string
-  name: string; sort_order: number; created_at: string
+  name: string; section_type: SectionType; sort_order: number; created_at: string
   items?: EstimateItem[]
 }
 export interface EstimateItem {

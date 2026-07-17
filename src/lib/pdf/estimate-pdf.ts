@@ -135,6 +135,7 @@ export function generateEstimatePDF(estimate: FullEstimate, orgName = 'Construct
 
   <div class="totals">
     <div class="totals-row"><span class="muted">Materials</span><span>${usd(Number(estimate.subtotal_materials ?? 0))}</span></div>
+    <div class="totals-row"><span class="muted">Materials Tax (${Number(estimate.tax_pct ?? 0)}%)</span><span>${usd(Number(estimate.tax_amount ?? 0))}</span></div>
     <div class="totals-row"><span class="muted">Labor</span><span>${usd(Number(estimate.subtotal_labor ?? 0))}</span></div>
     ${Number(estimate.subtotal_other ?? 0) > 0 ? `<div class="totals-row"><span class="muted">Other</span><span>${usd(Number(estimate.subtotal_other))}</span></div>` : ''}
     <div class="totals-row"><span class="muted">Subtotal</span><span>${usd(Number(estimate.grand_total ?? 0))}</span></div>

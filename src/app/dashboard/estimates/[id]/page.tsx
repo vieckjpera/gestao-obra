@@ -272,9 +272,10 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
             </div>
             <div className="flex flex-col gap-2">
               {[
-                { label: 'Materials',   value: estimate.subtotal_materials },
-                { label: 'Labor',       value: estimate.subtotal_labor },
-                { label: 'Other',       value: estimate.subtotal_other },
+                { label: 'Materials',                                    value: estimate.subtotal_materials },
+                { label: `Materials Tax (${estimate.tax_pct}%)`,          value: estimate.tax_amount },
+                { label: 'Labor',                                        value: estimate.subtotal_labor },
+                { label: 'Other',                                        value: estimate.subtotal_other },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between text-sm">
                   <span style={{ color: 'var(--text-secondary)' }}>{label}</span>

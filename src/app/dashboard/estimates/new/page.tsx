@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Input, Select, Badge, PageHeader } from '@/components/ui'
-import type { Client, ServiceType, EstimateTemplateItem, ItemType } from '@/types/database'
+import type { Client, ServiceType, EstimateTemplateItem, ItemType, SectionType } from '@/types/database'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DraftItem {
@@ -27,20 +27,36 @@ interface DraftItem {
 interface DraftSection {
   id: string
   name: string
+  section_type: SectionType
+  locked: boolean // seções pré-definidas não podem ser removidas nem renomeadas
   items: DraftItem[]
 }
 
-function newItem(): DraftItem {
+const MATERIAL_UNITS = ['un', 'ft', 'sf', 'm²', 'lb']
+const LABOR_UNITS = ['hr', 'day', 'job']
+const OTHER_UNITS = [...MATERIAL_UNITS, ...LABOR_UNITS]
+
+function unitsForType(type: SectionType): string[] {
+  if (type === 'labor') return LABOR_UNITS
+  if (type === 'material' || type === 'permit') return MATERIAL_UNITS
+  return OTHER_UNITS
+}
+
+const SECTION_LABELS: Record<SectionType, string> = {
+  material: 'Materials', labor: 'Labor', permit: 'Permits', other: 'Other',
+}
+
+function newItem(sectionType: SectionType): DraftItem {
   return {
     id: crypto.randomUUID(),
     description: '', vendor_notes: '', qty: '',
-    unit: 'un', unit_price: '', labor_hours: '0',
-    labor_rate: '0', item_type: 'material',
+    unit: unitsForType(sectionType)[0], unit_price: '', labor_hours: '0',
+    labor_rate: '0', item_type: sectionType, // herda direto — nunca hardcoded 'material'
   }
 }
 
-function newSection(name = 'New Section'): DraftSection {
-  return { id: crypto.randomUUID(), name, items: [newItem()] }
+function newSection(type: SectionType, locked = false): DraftSection {
+  return { id: crypto.randomUUID(), name: SECTION_LABELS[type], section_type: type, locked, items: [] }
 }
 
 // ── Calculations ──────────────────────────────────────────────
@@ -66,14 +82,15 @@ function useChecklist(
   const clientOk  = clientId !== ''
   const sectionsOk = sections.length > 0 && sections.some(s => s.items.length > 0)
   const itemsOk   = sections.every(s =>
-    s.items.every(i => parseFloat(i.qty) > 0 && parseFloat(i.unit_price) >= 0)
+    s.items.every(i =>
+      i.item_type === 'labor'
+        ? parseFloat(i.labor_hours) > 0 && parseFloat(i.labor_rate) >= 0
+        : parseFloat(i.qty) > 0 && parseFloat(i.unit_price) >= 0
+    )
   ) && sectionsOk
   const marginOk  = parseFloat(marginPct) > 0
   const noZeros   = sections.every(s =>
-    s.items.every(i => {
-      const total = calcLineTotal(i)
-      return total > 0 || (i.item_type === 'labor' && parseFloat(i.labor_hours) === 0)
-    })
+    s.items.every(i => calcLineTotal(i) > 0)
   ) && sectionsOk
 
   const checks = [
@@ -102,7 +119,12 @@ export default function NewEstimatePage() {
   const [scope, setScope]               = useState('')
   const [marginPct, setMarginPct]       = useState('40')
   const [validUntil, setValidUntil]     = useState('')
-  const [sections, setSections]         = useState<DraftSection[]>([newSection('Electrical Boxes & Rough-in')])
+  const [sections, setSections]         = useState<DraftSection[]>([
+    newSection('material', true),
+    newSection('labor', true),
+    newSection('permit', true),
+  ])
+  const [taxPct, setTaxPct]             = useState('7.5')
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
 
   const { checks, allOk } = useChecklist(clientId, scope, sections, marginPct)
@@ -112,7 +134,8 @@ export default function NewEstimatePage() {
   const subtotalMaterials = allItems.filter(i => i.item_type === 'material').reduce((s, i) => s + calcLineTotal(i), 0)
   const subtotalLabor     = allItems.filter(i => i.item_type === 'labor').reduce((s, i) => s + calcLineTotal(i), 0)
   const subtotalOther     = allItems.filter(i => i.item_type !== 'material' && i.item_type !== 'labor').reduce((s, i) => s + calcLineTotal(i), 0)
-  const grandTotal        = subtotalMaterials + subtotalLabor + subtotalOther
+  const taxAmount         = subtotalMaterials * (parseFloat(taxPct || '0') / 100)
+  const grandTotal        = subtotalMaterials + taxAmount + subtotalLabor + subtotalOther
   const totalWithMargin   = grandTotal * (1 + parseFloat(marginPct || '0') / 100)
 
   useEffect(() => {
@@ -171,13 +194,14 @@ export default function NewEstimatePage() {
     })
   }
 
-  const addSection = () => setSections(s => [...s, newSection()])
-  const removeSection = (id: string) => setSections(s => s.filter(sec => sec.id !== id))
+  const addOtherSection = () => setSections(s => [...s, { ...newSection('other', false), name: 'Other' }])
+  const removeSection = (id: string) =>
+    setSections(s => s.filter(sec => sec.id !== id || sec.locked))
   const updateSectionName = (id: string, name: string) =>
-    setSections(s => s.map(sec => sec.id === id ? { ...sec, name } : sec))
+    setSections(s => s.map(sec => sec.id === id && !sec.locked ? { ...sec, name } : sec))
 
   const addItem = (sectionId: string) =>
-    setSections(s => s.map(sec => sec.id === sectionId ? { ...sec, items: [...sec.items, newItem()] } : sec))
+    setSections(s => s.map(sec => sec.id === sectionId ? { ...sec, items: [...sec.items, newItem(sec.section_type)] } : sec))
   const removeItem = (sectionId: string, itemId: string) =>
     setSections(s => s.map(sec => sec.id === sectionId ? { ...sec, items: sec.items.filter(i => i.id !== itemId) } : sec))
   const updateItem = (sectionId: string, itemId: string, field: keyof DraftItem, value: string) =>
@@ -207,6 +231,7 @@ export default function NewEstimatePage() {
         service_type_id: serviceTypeId || null,
         scope: scope || null,
         profit_margin_pct: parseFloat(marginPct),
+        tax_pct: parseFloat(taxPct || '0'),
         valid_until: validUntil || null,
         check_client_complete: true,
         check_margin_defined: true,
@@ -214,16 +239,19 @@ export default function NewEstimatePage() {
 
       if (estErr || !est) throw estErr
 
-      // Create sections + items
+      // Create sections + items — seções sem itens preenchidos não são salvas (B2)
       for (let si = 0; si < sections.length; si++) {
         const section = sections[si]
+        const filledItems = section.items.filter(i => i.description.trim() || parseFloat(i.qty) > 0)
+        if (filledItems.length === 0) continue
+
         const { data: sec, error: secErr } = await supabase.from('estimate_sections').insert({
           estimate_id: est.id, org_id: orgId,
-          name: section.name, sort_order: si,
+          name: section.name, section_type: section.section_type, sort_order: si,
         }).select().single()
         if (secErr || !sec) throw secErr
 
-        const itemsPayload = section.items.map((item: DraftItem, ii: number) => ({
+        const itemsPayload = filledItems.map((item: DraftItem, ii: number) => ({
           estimate_id: est.id, section_id: sec.id, org_id: orgId,
           description: item.description,
           vendor_notes: item.vendor_notes || null,
@@ -335,8 +363,8 @@ export default function NewEstimatePage() {
                   Sections & Items
                 </h2>
               </div>
-              <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={addSection}>
-                Add Section
+              <Button variant="ghost" size="sm" icon={<Plus size={13} />} onClick={addOtherSection}>
+                Add Other Section
               </Button>
             </div>
 
@@ -357,22 +385,25 @@ export default function NewEstimatePage() {
                     >
                       <GripVertical size={14} style={{ color: 'var(--text-tertiary)' }} className="cursor-grab" />
                       <input
-                        className="flex-1 text-sm font-medium bg-transparent border-none outline-none"
+                        className="flex-1 text-sm font-medium bg-transparent border-none outline-none disabled:cursor-default"
                         style={{ color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
                         value={section.name}
+                        disabled={section.locked}
                         onChange={e => updateSectionName(section.id, e.target.value)}
                         placeholder="Section name…"
                       />
                       <span className="text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>
                         {formatUSD(sectionTotal)}
                       </span>
-                      <button
-                        onClick={() => removeSection(section.id)}
-                        className="p-1 rounded hover:bg-red-50 transition-colors"
-                        style={{ color: 'var(--text-tertiary)' }}
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      {!section.locked && (
+                        <button
+                          onClick={() => removeSection(section.id)}
+                          className="p-1 rounded hover:bg-red-50 transition-colors"
+                          style={{ color: 'var(--text-tertiary)' }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                       <button
                         onClick={() => toggleSection(section.id)}
                         className="p-1 rounded hover:bg-surface-100 transition-colors"
@@ -435,31 +466,34 @@ export default function NewEstimatePage() {
                               value={item.unit}
                               onChange={e => updateItem(section.id, item.id, 'unit', e.target.value)}
                             >
-                              {['un','ft','hr','day','job','m²','lb'].map(u => (
+                              {unitsForType(section.section_type).map(u => (
                                 <option key={u} value={u}>{u}</option>
                               ))}
                             </select>
                             <input
-                              className="text-sm bg-transparent border-none outline-none w-full font-mono text-right"
-                              style={{ color: 'var(--text-primary)' }}
+                              className="text-sm bg-transparent border-none outline-none w-full font-mono text-right disabled:cursor-not-allowed"
+                              style={{ color: section.section_type === 'labor' ? 'var(--text-tertiary)' : 'var(--text-primary)' }}
                               type="number" min="0" step="0.01"
                               value={item.unit_price}
+                              disabled={section.section_type === 'labor'}
                               onChange={e => updateItem(section.id, item.id, 'unit_price', e.target.value)}
                               placeholder="0.00"
                             />
                             <input
-                              className="text-sm bg-transparent border-none outline-none w-full font-mono text-right"
-                              style={{ color: item.item_type === 'labor' ? 'var(--text-primary)' : 'var(--text-tertiary)' }}
+                              className="text-sm bg-transparent border-none outline-none w-full font-mono text-right disabled:cursor-not-allowed"
+                              style={{ color: section.section_type === 'labor' ? 'var(--text-primary)' : 'var(--text-tertiary)' }}
                               type="number" min="0" step="0.5"
                               value={item.labor_hours}
+                              disabled={section.section_type !== 'labor'}
                               onChange={e => updateItem(section.id, item.id, 'labor_hours', e.target.value)}
                               placeholder="0"
                             />
                             <input
-                              className="text-sm bg-transparent border-none outline-none w-full font-mono text-right"
-                              style={{ color: item.item_type === 'labor' ? 'var(--text-primary)' : 'var(--text-tertiary)' }}
+                              className="text-sm bg-transparent border-none outline-none w-full font-mono text-right disabled:cursor-not-allowed"
+                              style={{ color: section.section_type === 'labor' ? 'var(--text-primary)' : 'var(--text-tertiary)' }}
                               type="number" min="0" step="0.01"
                               value={item.labor_rate}
+                              disabled={section.section_type !== 'labor'}
                               onChange={e => updateItem(section.id, item.id, 'labor_rate', e.target.value)}
                               placeholder="0.00"
                             />
@@ -514,11 +548,21 @@ export default function NewEstimatePage() {
               onChange={e => setMarginPct(e.target.value)}
               suffix={<span className="text-xs">%</span>}
             />
+            <div className="mt-3">
+              <Input
+                label="Materials Tax %"
+                type="number" min="0" max="100" step="0.1"
+                value={taxPct}
+                onChange={e => setTaxPct(e.target.value)}
+                suffix={<span className="text-xs">%</span>}
+              />
+            </div>
             <div className="mt-4 space-y-2">
               {[
-                { label: 'Materials',    value: subtotalMaterials },
-                { label: 'Labor',        value: subtotalLabor },
-                { label: 'Other',        value: subtotalOther },
+                { label: 'Materials',                          value: subtotalMaterials },
+                { label: `Materials Tax (${taxPct || 0}%)`,     value: taxAmount },
+                { label: 'Labor',                               value: subtotalLabor },
+                { label: 'Other',                               value: subtotalOther },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between text-sm">
                   <span style={{ color: 'var(--text-secondary)' }}>{label}</span>

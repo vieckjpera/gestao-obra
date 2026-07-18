@@ -53,7 +53,7 @@ export interface EstimateTemplate {
   sections?: EstimateTemplateSection[]
 }
 export interface EstimateTemplateSection {
-  id: string; template_id: string; name: string; sort_order: number
+  id: string; template_id: string; name: string; section_type: SectionType; sort_order: number
   items?: EstimateTemplateItem[]
 }
 export interface EstimateTemplateItem {

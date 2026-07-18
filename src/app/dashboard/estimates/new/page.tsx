@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Input, Select, Badge, PageHeader } from '@/components/ui'
-import type { Client, ServiceType, EstimateTemplateItem, ItemType, SectionType } from '@/types/database'
+import type { Client, ServiceType, EstimateTemplateItem, EstimateTemplateSection, ItemType, SectionType } from '@/types/database'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DraftItem {
@@ -150,39 +150,24 @@ export default function NewEstimatePage() {
     load()
   }, [])
 
-  // Load template when service type changes
+  // Load catalog (reference only — user picks what to add via "Browse Catalog")
+  const [catalogSections, setCatalogSections] = useState<
+    (EstimateTemplateSection & { items: EstimateTemplateItem[] })[]
+  >([])
   useEffect(() => {
-    if (!serviceTypeId) return
-    async function loadTemplate() {
+    if (!serviceTypeId) { setCatalogSections([]); return }
+    async function loadCatalog() {
       const { data: tpl } = await supabase
         .from('estimate_templates')
         .select('*, sections:estimate_template_sections(*, items:estimate_template_items(*))')
         .eq('service_type_id', serviceTypeId)
         .eq('is_default', true)
-        .single()
-      if (!tpl) return
-      const newSections: DraftSection[] = (tpl.sections || [])
-        .sort((a: any, b: any) => a.sort_order - b.sort_order)
-        .map((s: any) => ({
-          id: crypto.randomUUID(),
-          name: s.name,
-          items: (s.items || [])
-            .sort((a: EstimateTemplateItem, b: EstimateTemplateItem) => a.sort_order - b.sort_order)
-            .map((i: EstimateTemplateItem): DraftItem => ({
-              id: crypto.randomUUID(),
-              description: i.description,
-              vendor_notes: i.vendor_notes || '',
-              qty: '1',
-              unit: i.unit || 'un',
-              unit_price: String(i.unit_price),
-              labor_hours: String(i.labor_hours),
-              labor_rate: String(i.labor_rate),
-              item_type: i.item_type,
-            }))
-        }))
-      if (newSections.length > 0) setSections(newSections)
+        .maybeSingle()
+      if (!tpl) { setCatalogSections([]); return }
+      setCatalogSections(((tpl.sections || []) as (EstimateTemplateSection & { items: EstimateTemplateItem[] })[])
+        .sort((a, b) => a.sort_order - b.sort_order))
     }
-    loadTemplate()
+    loadCatalog()
   }, [serviceTypeId])
 
   // Section helpers
@@ -202,6 +187,40 @@ export default function NewEstimatePage() {
 
   const addItem = (sectionId: string) =>
     setSections(s => s.map(sec => sec.id === sectionId ? { ...sec, items: [...sec.items, newItem(sec.section_type)] } : sec))
+
+  // Catalog picker — checklist de itens do catálogo, com quantidade, por seção
+  const [openPickerSection, setOpenPickerSection] = useState<string | null>(null)
+  const [pickerChecked, setPickerChecked] = useState<Record<string, string>>({}) // itemId -> qty
+
+  function togglePicker(sectionId: string) {
+    setOpenPickerSection(prev => prev === sectionId ? null : sectionId)
+    setPickerChecked({})
+  }
+
+  function addFromCatalog(section: DraftSection) {
+    const catalogSection = catalogSections.find(cs => cs.section_type === section.section_type)
+    if (!catalogSection) return
+    const picked = Object.entries(pickerChecked).filter(([, qty]) => parseFloat(qty) > 0)
+    if (picked.length === 0) return
+
+    const newItems: DraftItem[] = picked.map(([itemId, qty]) => {
+      const tpl = catalogSection.items.find(i => i.id === itemId)!
+      return {
+        id: crypto.randomUUID(),
+        description: tpl.description,
+        vendor_notes: tpl.vendor_notes || '',
+        qty,
+        unit: tpl.unit || unitsForType(section.section_type)[0],
+        unit_price: String(tpl.unit_price),
+        labor_hours: String(tpl.labor_hours),
+        labor_rate: String(tpl.labor_rate),
+        item_type: section.section_type,
+      }
+    })
+    setSections(s => s.map(sec => sec.id === section.id ? { ...sec, items: [...sec.items, ...newItems] } : sec))
+    setOpenPickerSection(null)
+    setPickerChecked({})
+  }
   const removeItem = (sectionId: string, itemId: string) =>
     setSections(s => s.map(sec => sec.id === sectionId ? { ...sec, items: sec.items.filter(i => i.id !== itemId) } : sec))
   const updateItem = (sectionId: string, itemId: string, field: keyof DraftItem, value: string) =>
@@ -511,7 +530,7 @@ export default function NewEstimatePage() {
                         ))}
                         </div>
 
-                        <div className="px-4 py-2.5">
+                        <div className="px-4 py-2.5 flex items-center gap-2">
                           <Button
                             variant="ghost" size="sm"
                             icon={<Plus size={12} />}
@@ -520,7 +539,66 @@ export default function NewEstimatePage() {
                           >
                             Add item
                           </Button>
+                          {catalogSections.some(cs => cs.section_type === section.section_type && cs.items.length > 0) && (
+                            <Button
+                              variant="ghost" size="sm"
+                              onClick={() => togglePicker(section.id)}
+                              className="text-xs"
+                            >
+                              Browse Catalog
+                            </Button>
+                          )}
                         </div>
+
+                        {openPickerSection === section.id && (() => {
+                          const catalogSection = catalogSections.find(cs => cs.section_type === section.section_type)
+                          if (!catalogSection) return null
+                          return (
+                            <div className="mx-4 mb-3 rounded-lg border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-1)' }}>
+                              <div className="px-3 py-2 border-b text-xs font-medium" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-tertiary)' }}>
+                                Select items from catalog and set quantity
+                              </div>
+                              <div className="max-h-60 overflow-y-auto divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+                                {catalogSection.items.map(tplItem => (
+                                  <label key={tplItem.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-black/[0.02]">
+                                    <input
+                                      type="checkbox"
+                                      checked={tplItem.id in pickerChecked}
+                                      onChange={e => setPickerChecked(p => {
+                                        const next = { ...p }
+                                        if (e.target.checked) next[tplItem.id] = '1'
+                                        else delete next[tplItem.id]
+                                        return next
+                                      })}
+                                    />
+                                    <span className="flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>
+                                      {tplItem.description}
+                                    </span>
+                                    <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                                      {section.section_type === 'labor'
+                                        ? `${tplItem.labor_rate}/${tplItem.unit}`
+                                        : `$${tplItem.unit_price}/${tplItem.unit}`}
+                                    </span>
+                                    <input
+                                      type="number" min="0" step="0.5"
+                                      className="w-16 text-sm text-right font-mono px-1 py-0.5 rounded border"
+                                      style={{ borderColor: 'var(--border-subtle)' }}
+                                      value={pickerChecked[tplItem.id] ?? ''}
+                                      disabled={!(tplItem.id in pickerChecked)}
+                                      onClick={e => e.stopPropagation()}
+                                      onChange={e => setPickerChecked(p => ({ ...p, [tplItem.id]: e.target.value }))}
+                                    />
+                                  </label>
+                                ))}
+                              </div>
+                              <div className="px-3 py-2 border-t flex justify-end" style={{ borderColor: 'var(--border-subtle)' }}>
+                                <Button size="sm" onClick={() => addFromCatalog(section)}>
+                                  Add Selected
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })()}
                       </div>
                     )}
                   </div>

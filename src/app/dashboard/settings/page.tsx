@@ -173,6 +173,23 @@ export default function SettingsPage() {
           </Button>
         </div>
       </Section>
+
+      {/* Catalog */}
+      <Section title="Catálogo de itens">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+              Produtos e serviços
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+              Cadastre os itens que aparecerão como checklist ao criar um orçamento.
+            </p>
+          </div>
+          <a href="/dashboard/catalog">
+            <Button variant="secondary" size="sm">Gerenciar catálogo</Button>
+          </a>
+        </div>
+      </Section>
     </div>
   )
 }

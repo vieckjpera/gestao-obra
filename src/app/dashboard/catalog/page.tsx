@@ -136,14 +136,22 @@ export default function CatalogPage() {
     }))
   }
 
-  async function saveItem(item: EstimateTemplateItem) {
-    await supabase.from('estimate_template_items').update({
-      description: item.description,
-      unit: item.unit,
-      unit_price: Number(item.unit_price) || 0,
-      labor_hours: Number(item.labor_hours) || 0,
-      labor_rate: Number(item.labor_rate) || 0,
-    }).eq('id', item.id)
+  async function saveItem(itemId: string, sectionId: string) {
+    // Lê o estado MAIS RECENTE (evita closure obsoleta do onBlur em cima do item do render)
+    setSections(current => {
+      const sec = current.find(s => s.id === sectionId)
+      const item = sec?.items.find(i => i.id === itemId)
+      if (item) {
+        supabase.from('estimate_template_items').update({
+          description: item.description,
+          unit: item.unit,
+          unit_price: Number(item.unit_price) || 0,
+          labor_hours: Number(item.labor_hours) || 0,
+          labor_rate: Number(item.labor_rate) || 0,
+        }).eq('id', item.id)
+      }
+      return current
+    })
   }
 
   async function removeItem(itemId: string, sectionId: string) {
@@ -244,13 +252,13 @@ export default function CatalogPage() {
                             placeholder="Description"
                             value={item.description}
                             onChange={e => updateItem(item.id, section.id, 'description', e.target.value)}
-                            onBlur={() => saveItem(item)}
+                            onBlur={() => saveItem(item.id, section.id)}
                           />
                           <select
                             className="text-xs w-16 bg-transparent outline-none"
                             value={item.unit ?? ''}
                             onChange={e => { updateItem(item.id, section.id, 'unit', e.target.value); }}
-                            onBlur={() => saveItem(item)}
+                            onBlur={() => saveItem(item.id, section.id)}
                           >
                             {UNITS_BY_TYPE[section.section_type].map(u => <option key={u} value={u}>{u}</option>)}
                           </select>
@@ -261,14 +269,14 @@ export default function CatalogPage() {
                                 type="number" placeholder="hrs"
                                 value={item.labor_hours}
                                 onChange={e => updateItem(item.id, section.id, 'labor_hours', e.target.value)}
-                                onBlur={() => saveItem(item)}
+                                onBlur={() => saveItem(item.id, section.id)}
                               />
                               <input
                                 className="w-20 text-sm text-right bg-transparent outline-none font-mono"
                                 type="number" placeholder="rate"
                                 value={item.labor_rate}
                                 onChange={e => updateItem(item.id, section.id, 'labor_rate', e.target.value)}
-                                onBlur={() => saveItem(item)}
+                                onBlur={() => saveItem(item.id, section.id)}
                               />
                             </>
                           ) : (
@@ -277,7 +285,7 @@ export default function CatalogPage() {
                               type="number" placeholder="price"
                               value={item.unit_price}
                               onChange={e => updateItem(item.id, section.id, 'unit_price', e.target.value)}
-                              onBlur={() => saveItem(item)}
+                              onBlur={() => saveItem(item.id, section.id)}
                             />
                           )}
                           <button

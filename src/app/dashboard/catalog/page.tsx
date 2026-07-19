@@ -133,10 +133,14 @@ export default function CatalogPage() {
   }
 
   async function updateItem(itemId: string, sectionId: string, field: string, value: string) {
-    setSections(s => s.map(sec => sec.id !== sectionId ? sec : {
-      ...sec,
-      items: sec.items.map(i => i.id === itemId ? { ...i, [field]: value } : i),
-    }))
+    setSections(s => {
+      const next = s.map(sec => sec.id !== sectionId ? sec : {
+        ...sec,
+        items: sec.items.map(i => i.id === itemId ? { ...i, [field]: value } : i),
+      })
+      sectionsRef.current = next // sync imediato — não depende do timing do useEffect
+      return next
+    })
   }
 
   async function saveItem(itemId: string, sectionId: string) {

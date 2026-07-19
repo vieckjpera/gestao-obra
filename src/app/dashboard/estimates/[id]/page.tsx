@@ -47,6 +47,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
   const supabase = createClient()
   const [estimate, setEstimate] = useState<FullEstimate | null>(null)
   const [loading, setLoading] = useState(true)
+  const [statusUpdating, setStatusUpdating] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -113,7 +114,6 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
   ]
   const allOk = checks.every(c => c.ok)
 
-  const [statusUpdating, setStatusUpdating] = useState(false)
   async function updateStatus(newStatus: EstimateStatus) {
     if (!estimate) return
     setStatusUpdating(true)

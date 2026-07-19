@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Input, PageHeader, EmptyState } from '@/components/ui'
 import { Plus, Trash2, Package, ChevronRight } from 'lucide-react'
@@ -27,6 +27,9 @@ export default function CatalogPage() {
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [sections, setSections] = useState<SectionWithItems[]>([])
+  // Ref espelha o estado atual — permite saveItem ler o valor mais recente sem closure obsoleta
+  const sectionsRef = useRef<SectionWithItems[]>([])
+  useEffect(() => { sectionsRef.current = sections }, [sections])
   const [newTypeName, setNewTypeName] = useState('')
   const [orgId, setOrgId] = useState<string | null>(null)
 
@@ -137,21 +140,17 @@ export default function CatalogPage() {
   }
 
   async function saveItem(itemId: string, sectionId: string) {
-    // Lê o estado MAIS RECENTE (evita closure obsoleta do onBlur em cima do item do render)
-    setSections(current => {
-      const sec = current.find(s => s.id === sectionId)
-      const item = sec?.items.find(i => i.id === itemId)
-      if (item) {
-        supabase.from('estimate_template_items').update({
-          description: item.description,
-          unit: item.unit,
-          unit_price: Number(item.unit_price) || 0,
-          labor_hours: Number(item.labor_hours) || 0,
-          labor_rate: Number(item.labor_rate) || 0,
-        }).eq('id', item.id)
-      }
-      return current
-    })
+    const sec = sectionsRef.current.find(s => s.id === sectionId)
+    const item = sec?.items.find(i => i.id === itemId)
+    if (!item) return
+    const { error } = await supabase.from('estimate_template_items').update({
+      description: item.description,
+      unit: item.unit,
+      unit_price: Number(item.unit_price) || 0,
+      labor_hours: Number(item.labor_hours) || 0,
+      labor_rate: Number(item.labor_rate) || 0,
+    }).eq('id', item.id)
+    if (error) console.error('Erro ao salvar item do catálogo:', error.message)
   }
 
   async function removeItem(itemId: string, sectionId: string) {

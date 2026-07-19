@@ -28,6 +28,15 @@ const STATUS_VARIANT: Record<EstimateStatus, 'draft' | 'info' | 'warning' | 'suc
   draft: 'draft', ready: 'info', sent: 'warning',
   approved: 'success', rejected: 'danger', expired: 'default',
 }
+// Máquina de estados — de cada status, quais transições são permitidas
+const STATUS_TRANSITIONS: Record<EstimateStatus, EstimateStatus[]> = {
+  draft: ['ready'],
+  ready: ['sent', 'draft'],
+  sent: ['approved', 'rejected', 'draft'],
+  approved: ['rejected'],
+  rejected: ['draft'],
+  expired: ['draft'],
+}
 
 interface FullEstimate extends Estimate {
   sections: (EstimateSection & { items: EstimateItem[] })[]
@@ -104,6 +113,15 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
   ]
   const allOk = checks.every(c => c.ok)
 
+  const [statusUpdating, setStatusUpdating] = useState(false)
+  async function updateStatus(newStatus: EstimateStatus) {
+    if (!estimate) return
+    setStatusUpdating(true)
+    const { error } = await supabase.from('estimates').update({ status: newStatus }).eq('id', estimate.id)
+    if (!error) setEstimate(e => e ? { ...e, status: newStatus } : e)
+    setStatusUpdating(false)
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -115,6 +133,26 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
               Back
             </Button>
             <Badge variant={STATUS_VARIANT[estimate.status]}>{STATUS_LABEL[estimate.status]}</Badge>
+            {STATUS_TRANSITIONS[estimate.status].length > 0 && (
+              <select
+                disabled={statusUpdating}
+                value=""
+                onChange={e => e.target.value && updateStatus(e.target.value as EstimateStatus)}
+                className="text-xs rounded-lg border h-8 px-2 cursor-pointer bg-white"
+                style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}
+              >
+                <option value="">Change status…</option>
+                {STATUS_TRANSITIONS[estimate.status].map(s => (
+                  <option key={s} value={s}>Mark as {STATUS_LABEL[s]}</option>
+                ))}
+              </select>
+            )}
+            <Button
+              variant="secondary" size="sm" icon={<Edit2 size={14} />}
+              onClick={() => router.push(`/dashboard/estimates/${estimate.id}/edit`)}
+            >
+              Edit
+            </Button>
             {allOk && (
               <Button size="sm" icon={<FileDown size={14} />} onClick={() => generateEstimatePDF(estimate)}>
                 Generate PDF

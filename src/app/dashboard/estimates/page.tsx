@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { Plus, FileText, Search, ChevronDown, X, ArrowUpRight } from 'lucide-react'
+import { Plus, FileText, Search, ChevronDown, X, ArrowUpRight, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Badge, PageHeader, EmptyState, Input } from '@/components/ui'
 import type { Estimate, EstimateStatus } from '@/types/database'
@@ -43,12 +43,31 @@ export default function EstimatesPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<EstimateStatus | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [currentRole, setCurrentRole] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const filterRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
+
+  const canDelete = currentRole === 'owner' || currentRole === 'pm'
+
+  async function handleDelete(e: React.MouseEvent, id: string) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!confirm('Delete this estimate? This cannot be undone.')) return
+    setDeletingId(id)
+    const { error } = await supabase.from('estimates').delete().eq('id', id)
+    if (!error) setEstimates(prev => prev.filter(est => est.id !== id))
+    setDeletingId(null)
+  }
 
   useEffect(() => {
     async function load() {
       setLoading(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      const { data: roleRow } = await supabase
+        .from('user_roles').select('role').eq('user_id', user?.id).single()
+      setCurrentRole(roleRow?.role ?? null)
+
       const { data } = await supabase
         .from('estimates')
         .select('*, client:clients(id, name, email, phone, address, city, state, zip, notes, created_at, updated_at, org_id)')
@@ -240,6 +259,19 @@ export default function EstimatesPage() {
                     {formatDate(estimate.created_at)}
                   </p>
                 </div>
+
+                {/* Delete — só owner/pm (reforçado por RLS no banco) */}
+                {canDelete && (
+                  <button
+                    onClick={e => handleDelete(e, estimate.id)}
+                    disabled={deletingId === estimate.id}
+                    className="flex-shrink-0 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50"
+                    style={{ color: 'var(--text-tertiary)' }}
+                    title="Delete estimate"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
 
                 {/* Arrow */}
                 <ArrowUpRight

@@ -145,10 +145,16 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
         supabase.from('service_types').select('*').order('sort_order'),
       ])
       setClients((cls as Client[]) || [])
-      setServiceTypes((sts as ServiceType[]) || [])
+      const types = (sts as ServiceType[]) || []
+      setServiceTypes(types)
+      // Auto-selecionar quando só existe um tipo de serviço — evita o usuário
+      // não perceber que precisa escolher pra desbloquear o catálogo
+      if (!estimateId && types.length === 1) {
+        setServiceTypeId(types[0].id)
+      }
     }
     load()
-  }, [])
+  }, [estimateId])
 
   // Modo edição: carregar estimate existente e popular o formulário
   const [loadingExisting, setLoadingExisting] = useState(!!estimateId)
@@ -631,6 +637,11 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
                             >
                               Browse Catalog
                             </Button>
+                          )}
+                          {!serviceTypeId && serviceTypes.length > 1 && (
+                            <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                              Select a Service Type above to browse the catalog
+                            </span>
                           )}
                         </div>
 

@@ -30,8 +30,8 @@ const STATUS_VARIANT: Record<EstimateStatus, 'draft' | 'info' | 'warning' | 'suc
 }
 // Máquina de estados — de cada status, quais transições são permitidas
 const STATUS_TRANSITIONS: Record<EstimateStatus, EstimateStatus[]> = {
-  draft: ['ready'],
-  ready: ['sent', 'draft'],
+  draft: [], // draft→ready é automático (trigger check_estimate_ready, baseado no checklist) — não manual
+  ready: ['sent'], // ready→draft também é automático se o checklist quebrar
   sent: ['approved', 'rejected', 'draft'],
   approved: ['rejected'],
   rejected: ['draft'],
@@ -133,6 +133,11 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
               Back
             </Button>
             <Badge variant={STATUS_VARIANT[estimate.status]}>{STATUS_LABEL[estimate.status]}</Badge>
+            {estimate.status === 'draft' && (
+              <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                Becomes Ready automatically once checklist is complete
+              </span>
+            )}
             {STATUS_TRANSITIONS[estimate.status].length > 0 && (
               <select
                 disabled={statusUpdating}

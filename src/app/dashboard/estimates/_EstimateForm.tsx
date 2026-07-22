@@ -29,6 +29,7 @@ interface DraftSection {
   name: string
   section_type: SectionType
   locked: boolean // seções pré-definidas não podem ser removidas nem renomeadas
+  catalogSectionId?: string // vincula à seção exata do catálogo (evita ambiguidade quando há várias seções do mesmo tipo)
   items: DraftItem[]
 }
 
@@ -215,7 +216,8 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
     loadExisting()
   }, [estimateId])
 
-  // Load catalog (reference only — user picks what to add via "Browse Catalog")
+  // Load catalog (reference) — e, se for um orçamento novo/vazio, substitui as 3 seções
+  // genéricas pelas seções REAIS do catálogo (nomes e itens idênticos à planilha)
   const [catalogSections, setCatalogSections] = useState<
     (EstimateTemplateSection & { items: EstimateTemplateItem[] })[]
   >([])
@@ -229,10 +231,25 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
         .eq('is_default', true)
         .maybeSingle()
       if (!tpl) { setCatalogSections([]); return }
-      setCatalogSections(((tpl.sections || []) as (EstimateTemplateSection & { items: EstimateTemplateItem[] })[])
-        .sort((a, b) => a.sort_order - b.sort_order))
+      const sorted = ((tpl.sections || []) as (EstimateTemplateSection & { items: EstimateTemplateItem[] })[])
+        .sort((a, b) => a.sort_order - b.sort_order)
+      setCatalogSections(sorted)
+
+      // Só substitui automaticamente se: orçamento novo (não edição) e nada foi preenchido ainda
+      const isEmpty = sections.every(s => s.items.length === 0)
+      if (sorted.length > 0 && !estimateId && isEmpty) {
+        setSections(sorted.map(cs => ({
+          id: crypto.randomUUID(),
+          name: cs.name,
+          section_type: cs.section_type,
+          locked: true,
+          catalogSectionId: cs.id,
+          items: [],
+        })))
+      }
     }
     loadCatalog()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serviceTypeId])
 
   // Section helpers
@@ -263,7 +280,9 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
   }
 
   function addFromCatalog(section: DraftSection) {
-    const catalogSection = catalogSections.find(cs => cs.section_type === section.section_type)
+    const catalogSection = section.catalogSectionId
+      ? catalogSections.find(cs => cs.id === section.catalogSectionId)
+      : catalogSections.find(cs => cs.section_type === section.section_type)
     if (!catalogSection) return
     const picked = Object.entries(pickerChecked).filter(([, qty]) => parseFloat(qty) > 0)
     if (picked.length === 0) return
@@ -481,6 +500,9 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
               {sections.map((section, si) => {
                 const collapsed = collapsedSections.has(section.id)
                 const sectionTotal = section.items.reduce((s, i) => s + calcLineTotal(i), 0)
+                const matchedCatalogSection = section.catalogSectionId
+                  ? catalogSections.find(cs => cs.id === section.catalogSectionId)
+                  : catalogSections.find(cs => cs.section_type === section.section_type)
                 return (
                   <div
                     key={section.id}
@@ -629,7 +651,7 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
                           >
                             Add item
                           </Button>
-                          {catalogSections.some(cs => cs.section_type === section.section_type && cs.items.length > 0) && (
+                          {matchedCatalogSection && matchedCatalogSection.items.length > 0 && (
                             <Button
                               variant="ghost" size="sm"
                               onClick={() => togglePicker(section.id)}
@@ -646,7 +668,7 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
                         </div>
 
                         {openPickerSection === section.id && (() => {
-                          const catalogSection = catalogSections.find(cs => cs.section_type === section.section_type)
+                          const catalogSection = matchedCatalogSection
                           if (!catalogSection) return null
                           return (
                             <div className="mx-4 mb-3 rounded-lg border" style={{ borderColor: 'var(--border-subtle)', background: 'var(--surface-1)' }}>

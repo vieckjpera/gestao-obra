@@ -244,7 +244,21 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
           section_type: cs.section_type,
           locked: true,
           catalogSectionId: cs.id,
-          items: [],
+          // Traz TODOS os itens do catálogo já como linhas — igual à planilha —
+          // só falta preencher quantidade (e ajustar preço se precisar)
+          items: cs.items
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((tpl): DraftItem => ({
+              id: crypto.randomUUID(),
+              description: tpl.description,
+              vendor_notes: tpl.vendor_notes || '',
+              qty: '',
+              unit: tpl.unit || unitsForType(cs.section_type)[0],
+              unit_price: String(tpl.unit_price ?? 0),
+              labor_hours: String(tpl.labor_hours ?? 0),
+              labor_rate: String(tpl.labor_rate ?? 0),
+              item_type: cs.section_type,
+            })),
         })))
       }
     }
@@ -651,7 +665,7 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
                           >
                             Add item
                           </Button>
-                          {matchedCatalogSection && matchedCatalogSection.items.length > 0 && (
+                          {matchedCatalogSection && matchedCatalogSection.items.length > 0 && !section.catalogSectionId && (
                             <Button
                               variant="ghost" size="sm"
                               onClick={() => togglePicker(section.id)}

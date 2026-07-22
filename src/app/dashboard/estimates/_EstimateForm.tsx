@@ -69,6 +69,15 @@ function calcLineTotal(item: DraftItem): number {
   return qty * price + hrs * rate
 }
 
+// Um item "conta" pro orçamento só se o usuário de fato informou uso —
+// não basta ter descrição, porque itens vindos do catálogo já chegam com
+// descrição preenchida (são referência, não uso automático).
+function isItemUsed(item: DraftItem): boolean {
+  return item.item_type === 'labor'
+    ? parseFloat(item.labor_hours) > 0
+    : parseFloat(item.qty) > 0
+}
+
 function formatUSD(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 }
@@ -81,9 +90,9 @@ function useChecklist(
   marginPct: string
 ) {
   const clientOk  = clientId !== ''
-  const sectionsOk = sections.length > 0 && sections.some(s => s.items.length > 0)
+  const sectionsOk = sections.length > 0 && sections.some(s => s.items.some(isItemUsed))
   const itemsOk   = sections.every(s =>
-    s.items.every(i =>
+    s.items.filter(isItemUsed).every(i =>
       i.item_type === 'labor'
         ? parseFloat(i.labor_hours) > 0 && parseFloat(i.labor_rate) >= 0
         : parseFloat(i.qty) > 0 && parseFloat(i.unit_price) >= 0
@@ -91,7 +100,7 @@ function useChecklist(
   ) && sectionsOk
   const marginOk  = parseFloat(marginPct) > 0
   const noZeros   = sections.every(s =>
-    s.items.every(i => calcLineTotal(i) > 0)
+    s.items.filter(isItemUsed).every(i => calcLineTotal(i) > 0)
   ) && sectionsOk
 
   const checks = [
@@ -376,7 +385,7 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
       // Create sections + items — seções sem itens preenchidos não são salvas (B2)
       for (let si = 0; si < sections.length; si++) {
         const section = sections[si]
-        const filledItems = section.items.filter(i => i.description.trim() || parseFloat(i.qty) > 0)
+        const filledItems = section.items.filter(isItemUsed)
         if (filledItems.length === 0) continue
 
         const { data: sec, error: secErr } = await supabase.from('estimate_sections').insert({

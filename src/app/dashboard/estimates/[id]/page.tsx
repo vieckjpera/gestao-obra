@@ -10,8 +10,8 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button, Badge, PageHeader } from '@/components/ui'
-import type { Estimate, EstimateSection, EstimateItem, EstimateStatus } from '@/types/database'
-import { generateEstimatePDF } from '@/lib/pdf/estimate-pdf'
+import type { Estimate, EstimateSection, EstimateItem, EstimateStatus, Organization } from '@/types/database'
+import { generateEstimatePDF, type OrgBranding } from '@/lib/pdf/estimate-pdf'
 
 function formatUSD(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
@@ -46,8 +46,24 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
   const router = useRouter()
   const supabase = createClient()
   const [estimate, setEstimate] = useState<FullEstimate | null>(null)
+  const [orgBranding, setOrgBranding] = useState<OrgBranding>({ name: 'ConstructOS' })
   const [loading, setLoading] = useState(true)
   const [statusUpdating, setStatusUpdating] = useState(false)
+
+  useEffect(() => {
+    async function loadOrg() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: role } = await supabase.from('user_roles').select('org_id').eq('user_id', user.id).single()
+      if (!role) return
+      const { data: org } = await supabase.from('organizations').select('*').eq('id', role.org_id).single()
+      if (org) {
+        const o = org as Organization
+        setOrgBranding({ name: o.name, logo_url: o.logo_url, phone: o.phone, email: o.email, address: o.address })
+      }
+    }
+    loadOrg()
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -159,7 +175,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
               Edit
             </Button>
             {allOk && (
-              <Button size="sm" icon={<FileDown size={14} />} onClick={() => generateEstimatePDF(estimate)}>
+              <Button size="sm" icon={<FileDown size={14} />} onClick={() => generateEstimatePDF(estimate, orgBranding, estimate.created_by_name || undefined)}>
                 Generate PDF
               </Button>
             )}

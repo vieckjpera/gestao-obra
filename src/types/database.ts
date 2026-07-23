@@ -7,6 +7,7 @@ export type UserRole = 'super_admin' | 'owner' | 'pm' | 'sub' | 'homeowner'
 export interface Organization {
   id: string; name: string; slug: string
   plan: 'mvp' | 'starter' | 'pro' | 'enterprise'
+  logo_url: string | null; phone: string | null; email: string | null; address: string | null
   active: boolean; created_at: string; updated_at: string
 }
 export interface Client {
@@ -31,7 +32,7 @@ export interface Estimate {
   check_client_complete: boolean; check_has_sections: boolean
   check_items_complete: boolean; check_margin_defined: boolean
   check_no_zero_items: boolean; pdf_url: string | null
-  created_by: string | null; created_at: string; updated_at: string
+  created_by: string | null; created_by_name: string | null; created_at: string; updated_at: string
   client?: Client; service_type?: ServiceType; sections?: EstimateSection[]
 }
 export interface EstimateSection {

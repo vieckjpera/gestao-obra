@@ -379,6 +379,8 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
           profit_margin_pct: parseFloat(marginPct),
           tax_pct: parseFloat(taxPct || '0'),
           valid_until: validUntil || null,
+          created_by: user?.id || null,
+          created_by_name: user?.user_metadata?.full_name || user?.email || null,
           check_client_complete: true,
           check_margin_defined: true,
         }).select().single()

@@ -51,12 +51,66 @@ export default function SettingsPage() {
   const [profileLoading, setProfileLoading] = useState(false)
   const [passwordLoading, setPasswordLoading] = useState(false)
 
+  // Company profile
+  const [orgId, setOrgId] = useState<string | null>(null)
+  const [orgName, setOrgName] = useState('')
+  const [orgLogoUrl, setOrgLogoUrl] = useState('')
+  const [orgPhone, setOrgPhone] = useState('')
+  const [orgEmail, setOrgEmail] = useState('')
+  const [orgAddress, setOrgAddress] = useState('')
+  const [canEditOrg, setCanEditOrg] = useState(false)
+  const [orgFeedback, setOrgFeedback] = useState<Feedback>(null)
+  const [orgLoading, setOrgLoading] = useState(false)
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user)
       setDisplayName(data.user?.user_metadata?.full_name ?? '')
     })
   }, [])
+
+  useEffect(() => {
+    async function loadOrg() {
+      const { data: { user: u } } = await supabase.auth.getUser()
+      if (!u) return
+      const { data: role } = await supabase
+        .from('user_roles').select('org_id, role').eq('user_id', u.id).single()
+      if (!role) return
+      setCanEditOrg(role.role === 'owner' || role.role === 'admin')
+
+      const { data: org } = await supabase
+        .from('organizations').select('*').eq('id', role.org_id).single()
+      if (org) {
+        setOrgId(org.id)
+        setOrgName(org.name ?? '')
+        setOrgLogoUrl(org.logo_url ?? '')
+        setOrgPhone(org.phone ?? '')
+        setOrgEmail(org.email ?? '')
+        setOrgAddress(org.address ?? '')
+      }
+    }
+    loadOrg()
+  }, [])
+
+  async function handleOrgSave(e: React.FormEvent) {
+    e.preventDefault()
+    if (!orgId) return
+    setOrgLoading(true)
+    setOrgFeedback(null)
+    const { error } = await supabase.from('organizations').update({
+      name: orgName,
+      logo_url: orgLogoUrl || null,
+      phone: orgPhone || null,
+      email: orgEmail || null,
+      address: orgAddress || null,
+    }).eq('id', orgId)
+    setOrgLoading(false)
+    setOrgFeedback(
+      error
+        ? { type: 'error', message: 'Erro ao salvar. Tente novamente.' }
+        : { type: 'success', message: 'Perfil da empresa atualizado com sucesso.' }
+    )
+  }
 
   async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault()
@@ -127,6 +181,73 @@ export default function SettingsPage() {
             <Button type="submit" loading={profileLoading} size="sm">
               Salvar perfil
             </Button>
+          </div>
+        </form>
+      </Section>
+
+      {/* Company Profile */}
+      <Section title="Perfil da empresa">
+        <form onSubmit={handleOrgSave} className="flex flex-col gap-4">
+          <p className="text-xs -mt-2" style={{ color: 'var(--text-secondary)' }}>
+            Essas informações aparecem no PDF dos orçamentos enviados aos seus clientes.
+          </p>
+          <Input
+            label="Nome da empresa"
+            type="text"
+            value={orgName}
+            onChange={e => setOrgName(e.target.value)}
+            placeholder="Nome que aparece no orçamento"
+          />
+          <Input
+            label="URL do logo"
+            type="url"
+            value={orgLogoUrl}
+            onChange={e => setOrgLogoUrl(e.target.value)}
+            placeholder="https://…/logo.png"
+            hint="Cole o link de uma imagem já hospedada (ex: do seu site)."
+          />
+          {orgLogoUrl && (
+            <img
+              src={orgLogoUrl}
+              alt="Preview do logo"
+              className="h-12 object-contain rounded border p-1"
+              style={{ borderColor: 'var(--border-subtle)' }}
+              onError={e => (e.currentTarget.style.display = 'none')}
+            />
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Telefone"
+              type="text"
+              value={orgPhone}
+              onChange={e => setOrgPhone(e.target.value)}
+              placeholder="(555) 000-0000"
+            />
+            <Input
+              label="E-mail de contato"
+              type="email"
+              value={orgEmail}
+              onChange={e => setOrgEmail(e.target.value)}
+              placeholder="contato@suaempresa.com"
+            />
+          </div>
+          <Input
+            label="Endereço"
+            type="text"
+            value={orgAddress}
+            onChange={e => setOrgAddress(e.target.value)}
+            placeholder="Endereço completo"
+          />
+          <FeedbackBanner feedback={orgFeedback} />
+          <div>
+            <Button type="submit" loading={orgLoading} size="sm" disabled={!canEditOrg}>
+              Salvar perfil da empresa
+            </Button>
+            {!canEditOrg && (
+              <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                Apenas owner/admin podem editar o perfil da empresa.
+              </p>
+            )}
           </div>
         </form>
       </Section>

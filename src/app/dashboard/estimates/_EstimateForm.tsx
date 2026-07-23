@@ -245,7 +245,11 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
       setCatalogSections(sorted)
 
       // Só substitui automaticamente se: orçamento novo (não edição) e nada foi preenchido ainda
-      const isEmpty = sections.every(s => s.items.length === 0)
+      // "Vazio" = nenhum item tem descrição digitada ou quantidade real —
+      // linhas em branco criadas via "Add item" não devem travar a troca de catálogo
+      const isEmpty = sections.every(s =>
+        s.items.every(i => !i.description.trim() && !(parseFloat(i.qty) > 0))
+      )
       if (sorted.length > 0 && !estimateId && isEmpty) {
         setSections(sorted.map(cs => ({
           id: crypto.randomUUID(),

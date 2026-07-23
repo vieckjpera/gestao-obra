@@ -251,7 +251,7 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
                     <div
                       className="grid text-xs px-5 py-2 font-medium"
                       style={{
-                        gridTemplateColumns: '1fr 60px 70px 90px 80px 90px 100px',
+                        gridTemplateColumns: '2fr 60px 70px 80px 70px 80px 90px',
                         color: 'var(--text-tertiary)',
                         borderBottom: '1px solid var(--surface-2)',
                       }}
@@ -271,12 +271,12 @@ export default function EstimateDetailPage({ params }: { params: { id: string } 
                         key={item.id}
                         className="grid items-center px-5 py-2.5 hover:bg-surface-50 transition-colors"
                         style={{
-                          gridTemplateColumns: '1fr 60px 70px 90px 80px 90px 100px',
+                          gridTemplateColumns: '2fr 60px 70px 80px 70px 80px 90px',
                           borderBottom: '1px solid var(--surface-2)',
                         }}
                       >
                         <div>
-                          <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{item.description}</p>
+                          <p className="text-sm" style={{ color: 'var(--text-primary)' }} title={item.description}>{item.description}</p>
                           {item.vendor_notes && (
                             <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{item.vendor_notes}</p>
                           )}

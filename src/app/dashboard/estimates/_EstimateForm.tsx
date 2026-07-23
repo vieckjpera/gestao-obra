@@ -579,7 +579,7 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
                         <div
                           className="grid text-xs px-4 py-2 font-medium"
                           style={{
-                            gridTemplateColumns: '1fr 80px 80px 90px 80px 90px 100px 36px',
+                            gridTemplateColumns: '2fr 70px 70px 80px 70px 80px 90px 36px',
                             color: 'var(--text-tertiary)',
                             borderBottom: '1px solid var(--border-subtle)',
                           }}
@@ -599,16 +599,18 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
                             key={item.id}
                             className="grid items-center px-4 py-2 gap-2 group hover:bg-surface-50 transition-colors"
                             style={{
-                              gridTemplateColumns: '1fr 80px 80px 90px 80px 90px 100px 36px',
+                              gridTemplateColumns: '2fr 70px 70px 80px 70px 80px 90px 36px',
                               borderBottom: '1px solid var(--border-subtle)',
                             }}
                           >
-                            <input
-                              className="text-sm bg-transparent border-none outline-none w-full"
+                            <textarea
+                              className="text-sm bg-transparent border-none outline-none w-full resize-none leading-snug py-1"
                               style={{ color: 'var(--text-primary)' }}
                               value={item.description}
                               onChange={e => updateItem(section.id, item.id, 'description', e.target.value)}
                               placeholder="Item description…"
+                              title={item.description}
+                              rows={2}
                             />
                             <input
                               className="text-sm bg-transparent border-none outline-none w-full font-mono text-right"

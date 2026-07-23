@@ -250,12 +250,14 @@ export default function CatalogPage() {
                     <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
                       {section.items.map(item => (
                         <div key={item.id} className="px-4 py-2 flex items-center gap-2">
-                          <input
-                            className="flex-1 text-sm bg-transparent outline-none"
+                          <textarea
+                            className="flex-1 text-sm bg-transparent outline-none resize-none leading-snug py-1"
                             placeholder="Description"
                             value={item.description}
                             onChange={e => updateItem(item.id, section.id, 'description', e.target.value)}
                             onBlur={() => saveItem(item.id, section.id)}
+                            title={item.description}
+                            rows={2}
                           />
                           <select
                             className="text-xs w-16 bg-transparent outline-none"

@@ -152,7 +152,7 @@ export function EstimateForm({ estimateId }: { estimateId?: string }) {
     async function load() {
       const [{ data: cls }, { data: sts }] = await Promise.all([
         supabase.from('clients').select('*').order('name'),
-        supabase.from('service_types').select('*').order('sort_order'),
+        supabase.from('service_types').select('*').not('org_id', 'is', null).order('sort_order'),
       ])
       setClients((cls as Client[]) || [])
       const types = (sts as ServiceType[]) || []
